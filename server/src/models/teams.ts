@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import { ITeam } from "../types";
 
 mongoose.set("strictQuery", false);
 
@@ -14,10 +15,10 @@ mongoose
     console.log("error connecting to MongoDB:", error.message);
   });
 
-const teamSchema = new mongoose.Schema({
+const teamSchema = new mongoose.Schema<ITeam>({
   id: { type: String },
   name: { type: String, required: true },
-  players: { type: Array, requred: true },
+  players: [{ type: String }],
   is_teen_team: { type: Boolean, required: true },
 });
 
