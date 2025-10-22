@@ -17,5 +17,5 @@ app.get("/ping", (_req, res) => {
 app.use("/api/teams", teamRouter);
 
 app.listen(PORT, () => {
-  console.log(`Server running on https://localhost:${PORT}/`);
+  console.log(`Server running on http://localhost:${PORT}/`);
 });

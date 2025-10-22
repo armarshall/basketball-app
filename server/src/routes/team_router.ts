@@ -3,9 +3,12 @@ import Team from "../models/teams";
 
 const router = express.Router();
 
-router.get("/", (_req, _res) => {
+router.get("/", (_req, res) => {
   // res.send("getting teams...");
-  // Team.
+
+  Team.find({}).then((result) => {
+    res.json(result);
+  });
 });
 
 router.get("/:id", (req, res) => {
@@ -18,7 +21,7 @@ router.post("/", (req, res) => {
   // res.send("saving a team");
   const body = req.body;
 
-  if (!body.content) {
+  if (!body) {
     return res.status(400).json({ error: "content missing" });
   }
 
