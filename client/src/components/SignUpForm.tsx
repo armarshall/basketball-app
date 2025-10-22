@@ -8,7 +8,6 @@ interface SignUpFormProps {
 export default function SignUpForm({ type }: SignUpFormProps) {
   return (
     <Box
-      component="div"
       sx={{
         display: "flex",
         flexDirection: "column",
