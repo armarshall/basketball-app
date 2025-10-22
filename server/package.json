@@ -24,6 +24,9 @@
     "typescript-eslint": "^8.46.2"
   },
   "dependencies": {
-    "express": "^5.1.0"
+    "@types/mongoose": "^5.11.96",
+    "dotenv": "^17.2.3",
+    "express": "^5.1.0",
+    "mongoose": "^8.19.2"
   }
 }

@@ -1,4 +1,7 @@
+require("dotenv").config();
+
 import express from "express";
+
 import teamRouter from "./routes/team_router";
 
 const app = express();
