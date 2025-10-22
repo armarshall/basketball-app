@@ -18,7 +18,7 @@ const teamSchema = new mongoose.Schema({
   id: { type: String },
   name: { type: String, required: true },
   players: { type: Array, requred: true },
-  is_teen: { type: Boolean, required: true },
+  is_teen_team: { type: Boolean, required: true },
 });
 
 teamSchema.set("toJSON", {

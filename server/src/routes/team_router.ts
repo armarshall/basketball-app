@@ -28,7 +28,7 @@ router.post("/", (req, res) => {
   const team = new Team({
     name: body.name,
     players: body.players,
-    is_teen: body.is_teen,
+    is_teen_team: body.is_teen_team,
   });
 
   let error = team.validateSync();
