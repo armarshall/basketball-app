@@ -1,5 +1,5 @@
-import SignUpPage from "../components/SignUpPage";
+import SignUpForm from "../components/SignUpForm";
 
 export default function GuardianSignUp() {
-  return <SignUpPage type="guardian" />;
+  return <SignUpForm type="guardian" />;
 }

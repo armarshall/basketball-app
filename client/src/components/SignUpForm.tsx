@@ -1,11 +1,11 @@
 import RegistrationForm from "./RegistrationForm";
 import { Box } from "@mui/material";
 
-interface SignUpPageProps {
+interface SignUpFormProps {
   type: "guardian" | "teenager";
 }
 
-export default function SignUpPage({ type }: SignUpPageProps) {
+export default function SignUpForm({ type }: SignUpFormProps) {
   return (
     <Box
       component="div"

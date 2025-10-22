@@ -1,5 +1,5 @@
-import SignUpPage from "../components/SignUpPage";
+import SignUpForm from "../components/SignUpForm";
 
 export default function TeenagerSignUp() {
-  return <SignUpPage type="teenager" />;
+  return <SignUpForm type="teenager" />;
 }

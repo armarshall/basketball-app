@@ -1,14 +1,40 @@
 import { Box, TextField, Button, Typography } from "@mui/material";
+import { useState } from "react";
+import ChildForm from "./ChildForm";
 
 interface RegistrationFormProps {
-  type: "guardian" | "teenager";
+  type: "guardian" | "teenager" | "child";
 }
 
 export default function RegistrationForm({ type }: RegistrationFormProps) {
+  const [step, setStep] = useState(1);
+
+  const handleNext = () => {
+    if (type === "guardian") {
+      setStep(2);
+    }
+  };
+
+  if (type === "guardian" && step === 2) {
+    return <ChildForm />;
+  }
+
+  const getTitle = () => {
+    if (type === "guardian") return "Guardian Sign Up";
+    if (type === "teenager") return "Teenager Sign Up";
+    if (type === "child") return "Child Information";
+    return "";
+  };
+
+  const getButtonText = () => {
+    if (type === "guardian") return "Next Page";
+    return "Submit";
+  };
+
   return (
     <>
       <Typography gutterBottom variant="h4">
-        {type === "guardian" ? "Guardian Sign Up" : "Teenager Sign Up"}
+        {getTitle()}
       </Typography>
       <Box
         component="form"
@@ -36,11 +62,15 @@ export default function RegistrationForm({ type }: RegistrationFormProps) {
           required
           slotProps={{ inputLabel: { shrink: true } }}
         />
-        <TextField label="Email" type="email" required />
-        <TextField label="Password" type="password" required />
-        <TextField label="Confirm Password" type="password" required />
-        <Button variant="contained" type="submit">
-          Submit
+        {type !== "child" && (
+          <>
+            <TextField label="Email" type="email" required />
+            <TextField label="Password" type="password" required />
+            <TextField label="Confirm Password" type="password" required />
+          </>
+        )}
+        <Button variant="contained" onClick={handleNext}>
+          {getButtonText()}
         </Button>
       </Box>
     </>
