@@ -3,11 +3,14 @@ import { ITournament } from "../types";
 
 const tournamentSchema = new mongoose.Schema<ITournament>({
   is_teen_tournament: { type: Boolean, required: true },
+  start_date_time: Date,
   rounds: [
     {
       matches: [
         {
           team_ids: [{ type: String }],
+          start_date_time: Date,
+          scores: [{ type: Number}],
           winner_id: String,
         },
       ],
