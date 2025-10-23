@@ -1,19 +1,5 @@
-import mongoose from "mongoose";
+import mongoose from "../database";
 import { ITournament } from "../types";
-
-mongoose.set("strictQuery", false);
-
-const url = process.env.MONGODB_URI as string;
-
-console.log("connecting to db: ", url);
-mongoose
-  .connect(url)
-  .then((_result) => {
-    console.log("connected to MongoDB");
-  })
-  .catch((error) => {
-    console.log("error connecting to MongoDB:", error.message);
-  });
 
 const tournamentSchema = new mongoose.Schema<ITournament>({
   is_teen_tournament: { type: Boolean, required: true },
