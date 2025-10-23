@@ -30,8 +30,19 @@ export interface ITeenager {
   teamId?: String; // optional team id
 }
 
+export interface IMatch {
+  team_ids: String[];
+  winner_id: String;
+}
+
+export interface IRound {
+  matches: IMatch[];
+}
+
 // rounds: array of rounds, which is an array of matches, which is a pair of teams
 
-export interface Tournament {
-  rounds: [[[]]];
+export interface ITournament {
+  id?: String;
+  is_teen_tournament: Boolean;
+  rounds: IRound[];
 }
