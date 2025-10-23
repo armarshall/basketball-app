@@ -82,5 +82,5 @@ app.get('/test', (req, res) => {
 });
 
 app.listen(5000, () => {
-  console.log('✅ Backend server running on http://localhost:5000');
+  console.log('Backend server running on http://localhost:5000');
 });
