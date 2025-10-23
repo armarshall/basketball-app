@@ -1,4 +1,5 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+
 import MenuAppBar from "./components/MenuAppBar";
 import Home from "./pages/Home";
 import Rules from "./pages/Rules";
@@ -9,6 +10,7 @@ import SignUp from "./pages/SignUp";
 import GuardianSignUp from "./pages/GuardianSignUp";
 import TeenagerSignUp from "./pages/TeenagerSignUp";
 import LogIn from "./pages/LogIn";
+import { TeamCreation } from "./pages/TeamCreation";
 
 function App() {
   return (
@@ -24,6 +26,7 @@ function App() {
         <Route path="/signup/guardian" element={<GuardianSignUp />} />
         <Route path="/signup/teenager" element={<TeenagerSignUp />} />
         <Route path="/login" element={<LogIn />} />
+        <Route path="/teamcreate" element={<TeamCreation />} />
       </Routes>
     </BrowserRouter>
   );
