@@ -33,10 +33,12 @@ router.post("/", (req, res) => {
 
   let error = team.validateSync();
   if (error) {
+    console.log(error);
     return res.status(400).json(error);
   }
 
   return team.save().then((savedTeam) => {
+    console.log("created team: ", savedTeam);
     return res.json(savedTeam);
   });
 });
