@@ -32,7 +32,7 @@ export interface ITeenager {
 
 export interface IMatch {
   team_ids: String[];
-  start_date_time: Date;
+  start_date_time?: Date;
   scores?: Number[];
   winner_id?: String;
 }

@@ -27,8 +27,9 @@ router.post("/", (req, res) => {
   }
 
   return Team.find({}).then((teams) => {
-    const tournament_data = generate_tournament(teams, body.start_date_time, body.is_teen_team);
-
+    console.log(body);
+    const tournament_data = generate_tournament(teams, new Date(body.start_date_time), body.is_teen_team);
+    
     const tournament = new Tournament(tournament_data);
     let error = tournament.validateSync();
     if (error) {

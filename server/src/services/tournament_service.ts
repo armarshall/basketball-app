@@ -33,6 +33,7 @@ export const generate_tournament = (
   let match_time: Date = getNextSaturday(week_of);
 
   for (let i = 0; i < eligible_teams.length; i += 2) {
+    // TODO: ensure teams are removed once selected
     let team1_id = _random_item(eligible_teams).id;
     let team2_id = _random_item(eligible_teams).id;
 
