@@ -6,8 +6,8 @@ const router = express.Router();
 router.get("/", (_req, res) => {
   // res.send("getting teams...");
 
-  Team.find({}).then((result) => {
-    res.json(result);
+  return Team.find({}).then((result) => {
+    return res.json(result);
   });
 });
 

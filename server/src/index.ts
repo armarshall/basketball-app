@@ -3,6 +3,7 @@ require("dotenv").config();
 import express from "express";
 
 import teamRouter from "./routes/team_router";
+import tournamentRouter from "./routes/tournament_router";
 
 const app = express();
 app.use(express.json());
@@ -15,6 +16,8 @@ app.get("/ping", (_req, res) => {
 });
 
 app.use("/api/teams", teamRouter);
+
+app.use("/api/tournaments", tournamentRouter);
 
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}/`);
