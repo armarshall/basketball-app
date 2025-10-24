@@ -1,4 +1,3 @@
-// server/src/routes/imageRoutes.ts
 import express from 'express';
 import multer from 'multer';
 import { Image } from '../models/Image';
