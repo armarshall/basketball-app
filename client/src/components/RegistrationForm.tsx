@@ -3,6 +3,23 @@ import { useState } from "react";
 import axios from "axios";
 import ChildForm from "./ChildForm";
 
+// Utility function to calculate age from date of birth
+const calculateAge = (dateOfBirth: string): number => {
+  const today = new Date();
+  const birthDate = new Date(dateOfBirth);
+  let age = today.getFullYear() - birthDate.getFullYear();
+  const monthDiff = today.getMonth() - birthDate.getMonth();
+
+  if (
+    monthDiff < 0 ||
+    (monthDiff === 0 && today.getDate() < birthDate.getDate())
+  ) {
+    age--;
+  }
+
+  return age;
+};
+
 interface RegistrationFormProps {
   type: "guardian" | "teenager" | "child";
 }
@@ -28,12 +45,12 @@ export default function RegistrationForm({ type }: RegistrationFormProps) {
       }));
     };
 
-  const handleSubmit = async () => {
+  const handleSubmit = async (): Promise<boolean> => {
     // Basic validation for all types
     if (type === "child") {
       if (!formData.name || !formData.dateOfBirth) {
         setError("Please fill in all required fields");
-        return;
+        return false;
       }
     } else {
       if (
@@ -43,12 +60,32 @@ export default function RegistrationForm({ type }: RegistrationFormProps) {
         !formData.password
       ) {
         setError("Please fill in all required fields");
-        return;
+        return false;
       }
 
       if (formData.password !== formData.confirmPassword) {
         setError("Passwords do not match");
-        return;
+        return false;
+      }
+    }
+
+    // Age validation based on user type
+    if (formData.dateOfBirth) {
+      const age = calculateAge(formData.dateOfBirth);
+
+      if (type === "guardian" && age < 18) {
+        setError("Guardians must be 18 years or older to sign up");
+        return false;
+      }
+
+      if (type === "teenager" && age < 13) {
+        setError("Teenagers must be 13 years or older to sign up");
+        return false;
+      }
+
+      if (type === "child" && age > 12) {
+        setError("Children must be 12 years or under to sign up");
+        return false;
       }
     }
 
@@ -81,8 +118,10 @@ export default function RegistrationForm({ type }: RegistrationFormProps) {
       const response = await axios.post(endpoint, requestData);
       console.log("Registration successful:", response.data);
       // Handle successful registration (redirect, show success message, etc.)
+      return true;
     } catch (err) {
       setError(err instanceof Error ? err.message : "Registration failed");
+      return false;
     } finally {
       setIsSubmitting(false);
     }
@@ -91,8 +130,8 @@ export default function RegistrationForm({ type }: RegistrationFormProps) {
   const handleNext = async () => {
     if (type === "guardian") {
       // For guardians, submit their data first, then proceed to child form
-      await handleSubmit();
-      if (!error) {
+      const success = await handleSubmit();
+      if (success) {
         setStep(2);
       }
     } else {
