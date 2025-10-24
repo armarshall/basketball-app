@@ -23,6 +23,9 @@ export default function MenuAppBar() {
         <Button href="/about" color="secondary" sx={{ textTransform: "none" }}>
           About
         </Button>
+        <Button href="/sponsors" color="secondary" sx={{ textTransform: "none" }}>
+          Sponsors
+        </Button>
         <Button href="/signup" variant="outlined" color="secondary">
           Sign Up
         </Button>
