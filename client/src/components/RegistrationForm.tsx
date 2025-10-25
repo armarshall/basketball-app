@@ -1,5 +1,6 @@
 import { Box, TextField, Button, Typography } from "@mui/material";
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import ChildForm from "./ChildForm";
 
@@ -36,6 +37,7 @@ export default function RegistrationForm({ type }: RegistrationFormProps) {
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState("");
+  const navigate = useNavigate();
 
   const handleInputChange =
     (field: string) => (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -117,7 +119,16 @@ export default function RegistrationForm({ type }: RegistrationFormProps) {
 
       const response = await axios.post(endpoint, requestData);
       console.log("Registration successful:", response.data);
-      // Handle successful registration (redirect, show success message, etc.)
+
+      // Navigate immediately to home for teenager and child and show snackbar there
+      if (type === "teenager" || type === "child") {
+        const successMsg =
+          type === "teenager"
+            ? "Teenager registration successful!"
+            : "Guardian and Child registration successful!";
+        navigate("/", { state: { snackbarMessage: successMsg } });
+      }
+
       return true;
     } catch (err) {
       setError(err instanceof Error ? err.message : "Registration failed");
