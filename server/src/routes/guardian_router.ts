@@ -27,6 +27,7 @@ router.post("/", (req, res) => {
     dateOfBirth: new Date(body.dateOfBirth),
     email: body.email,
     password: body.password,
+    childId: body.childId
   });
 
   let error = guardian.validateSync();
