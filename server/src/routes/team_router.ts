@@ -17,6 +17,33 @@ router.get("/:id", (req, res) => {
   });
 });
 
+router.patch("/:id", async (req, res) => {
+  const { player } = req.body;
+
+  if (!player) {
+    return res.status(400).json({ error: "player data missing" });
+  }
+
+  try {
+    const team = await Team.findById(req.params.id);
+    if (!team) {
+      return res.status(404).json({ error: "team not found" });
+    }
+    
+    if (team.players == null) {
+      team.players = [];
+    }
+    
+    team.players.push(player);
+
+    const savedTeam = await team.save();
+    return res.json(savedTeam);
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ error: "internal server error" });
+  }
+});
+
 router.post("/", (req, res) => {
   // res.send("saving a team");
   const body = req.body;
