@@ -9,7 +9,6 @@ export default function TeamSelection() {
   useEffect(() => {
     const fetchTeams = async () => {
       try {
-        // Get database teams data from api (setup in tournament_router.ts)
         const res = await axios.get('http://localhost:3000/api/teams');
         setTeams(res.data);
       } catch (e) {
@@ -22,9 +21,6 @@ export default function TeamSelection() {
   // Function to add a player to a team and teamId to a player
   const joinTeam = async (teamId, player) => {
     try {
-      const team = teams.find(t => t._id === teamId);
-      if (!team) throw new Error('Team not found');
-
       // determine if the player is a child or teenager
       const player_type = player.guardianId != null ? 'children' : 'teenagers';
       
@@ -41,7 +37,7 @@ export default function TeamSelection() {
       });
 
       if (teamRes.data) {
-        alert(`Successfully joined ${team.name}!`);
+        alert(`Successfully joined ${teamRes.data.name}!`);
       }
 
     } catch (error) {
