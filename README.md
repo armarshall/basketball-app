@@ -16,7 +16,7 @@
 ## Test Coverage Reports
 
 ### Backend
-![Server coverage screenshot](./test-reports/server-coverage.png)
+![Server coverage screenshot](./test-reports/backend-coverage.png)
 
 ### Frontend
 ![Client coverage screenshot](./test-reports/client-coverage.png)
