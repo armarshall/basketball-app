@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
-import teamService from '../services/teamService';
+import teamService from '../services/team_service';
 
 export default function TeamSelection() {
   // Save team and player states
