@@ -4,26 +4,37 @@ import Team from "../models/teams";
 import { IRound, ITeam, ITournament, IMatch } from "../types";
 import { Request, Response } from "express";
 
-export function random_item<T>(arr: T[]): T {
-  return arr[Math.floor(Math.random() * arr.length)];
+// export function random_item<T>(arr: T[]): T {
+//   return arr[Math.floor(Math.random() * arr.length)];
+// }
+
+export function shuffle<T>(arr: T[]) {
+  arr.sort(() => Math.random() - 0.5);
 }
 
 export const generate_tournament = (
   teams: ITeam[],
   is_teen_team: Boolean,
 ): ITournament => {
-  const eligible_teams = teams.filter((teams) => {
-    teams.is_teen_team == is_teen_team;
-  });
+  const eligible_teams = teams.filter(
+    (team) => team.is_teen_team === is_teen_team,
+  );
 
+  console.log("number of eligble teams: ", eligible_teams.length);
   let matches: IMatch[] = [];
 
-  for (let i = 0; i < eligible_teams.length; i += 2) {
-    let team1_id = random_item(eligible_teams).id;
-    let team2_id = random_item(eligible_teams).id;
+  shuffle(eligible_teams);
 
-    matches.concat({
-      team_ids: [team1_id, team2_id],
+  while (eligible_teams.length > 1) {
+    let team1 = eligible_teams.pop();
+    let team2 = eligible_teams.pop();
+
+    if (!team1 || !team2) {
+      break;
+    }
+
+    matches.push({
+      team_ids: [team1.id, team2.id],
       winner_id: "",
     });
   }
@@ -44,7 +55,7 @@ export const generate_next_round = (tournament: ITournament): Boolean => {
   let winners = [] as String[];
 
   last_round.matches.forEach((match) => {
-    winners.concat(match.winner_id);
+    winners.push(match.winner_id);
   });
 
   let new_matches: IMatch[] = [];
@@ -55,14 +66,14 @@ export const generate_next_round = (tournament: ITournament): Boolean => {
       winner_id: "",
     };
 
-    new_matches.concat(new_match);
+    new_matches.push(new_match);
   }
 
   let new_round: IRound = {
     matches: new_matches,
   };
 
-  tournament.rounds.concat(new_round);
+  tournament.rounds.push(new_round);
 
   return true;
 };

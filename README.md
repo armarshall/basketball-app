@@ -1,9 +1,22 @@
 # Basketball App (CS482-Software Engineering Group Project)
 
-## Description
+## Run Instructions
+1. Go to both `client/` and `server/` folders and run `npm i` in each
 
-### Background
+### Backend
+1. Go to `server/`
+2. `npm run tsc`
+3. `npm run start`
 
-### Features
+### Frontend
+1. Go to `client/`
+2. `npm run build`
+3. `npm run dev`
 
-## Usage
+## Test Coverage Reports
+
+### Backend
+![Server coverage screenshot](./test-reports/server-coverage.png)
+
+### Frontend
+![Client coverage screenshot](./test-reports/client-coverage.png)
