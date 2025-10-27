@@ -4,10 +4,6 @@ import Team from "../models/teams";
 import { IRound, ITeam, ITournament, IMatch } from "../types";
 import { Request, Response } from "express";
 
-// export function random_item<T>(arr: T[]): T {
-//   return arr[Math.floor(Math.random() * arr.length)];
-// }
-
 export function shuffle<T>(arr: T[]) {
   arr.sort(() => Math.random() - 0.5);
 }

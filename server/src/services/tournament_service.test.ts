@@ -1,8 +1,11 @@
-import { describe, expect, test } from "@jest/globals";
+import { describe, expect, test, jest } from "@jest/globals";
+
 import { ITeam } from "../types";
 import {
   generate_next_round,
   generate_tournament,
+  get_all_tounaments,
+  get_tournament_by_id,
   shuffle,
 } from "./tournament_service";
 
@@ -120,5 +123,41 @@ describe("tournament controller", () => {
     expect(success).toBeTruthy();
     expect(tournament.rounds.length).toBe(2);
     expect(tournament.rounds[1].matches.length).toBe(1);
+  });
+
+  test(
+    "get all tournaments",
+    async () => {
+      const req = {} as any;
+
+      const mock_json = jest.fn();
+
+      const res = {
+        json: mock_json,
+      } as any;
+
+      const all_tournaments = await get_all_tounaments(req, res);
+      console.log(all_tournaments);
+      expect(mock_json).toHaveBeenCalled();
+    },
+    5 * 1000,
+  );
+
+  test("get a tournament by id", async () => {
+    const req = {
+      params: {
+        id: "68f987913d5f14172215bc36" as String,
+      },
+    } as any;
+
+    const mock_json = jest.fn();
+
+    const res = {
+      json: mock_json,
+    } as any;
+
+    const all_tournaments = await get_tournament_by_id(req, res);
+    console.log(all_tournaments);
+    expect(mock_json).toHaveBeenCalled();
   });
 });
