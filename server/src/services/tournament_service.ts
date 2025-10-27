@@ -1,6 +1,10 @@
-import { IRound, ITeam, ITournament, IMatch } from "../types";
+import Tournament from "../models/tournaments";
+import Team from "../models/teams";
 
-function _random_item<T>(arr: T[]): T {
+import { IRound, ITeam, ITournament, IMatch } from "../types";
+import { Request, Response } from "express";
+
+export function random_item<T>(arr: T[]): T {
   return arr[Math.floor(Math.random() * arr.length)];
 }
 
@@ -15,8 +19,8 @@ export const generate_tournament = (
   let matches: IMatch[] = [];
 
   for (let i = 0; i < eligible_teams.length; i += 2) {
-    let team1_id = _random_item(eligible_teams).id;
-    let team2_id = _random_item(eligible_teams).id;
+    let team1_id = random_item(eligible_teams).id;
+    let team2_id = random_item(eligible_teams).id;
 
     matches.concat({
       team_ids: [team1_id, team2_id],
@@ -61,4 +65,38 @@ export const generate_next_round = (tournament: ITournament): Boolean => {
   tournament.rounds.concat(new_round);
 
   return true;
+};
+
+export const get_all_tounaments = async (_req: Request, res: Response) => {
+  return Tournament.find({}).then((result) => {
+    return res.json(result);
+  });
+};
+
+export const get_tournament_by_id = async (req: Request, res: Response) => {
+  return Tournament.findById(req.params.id).then((team) => {
+    return res.json(team);
+  });
+};
+
+export const create_tournament = (req: Request, res: Response) => {
+  const body = req.body;
+
+  if (!body) {
+    return res.status(400).json({ error: "content missing" });
+  }
+
+  return Team.find({}).then((teams) => {
+    const tournament_data = generate_tournament(teams, body.is_teen_team);
+
+    const tournament = new Tournament(tournament_data);
+    let error = tournament.validateSync();
+    if (error) {
+      return res.status(400).json(error);
+    }
+
+    return tournament.save().then((saved_tournament) => {
+      return res.json(saved_tournament);
+    });
+  });
 };
