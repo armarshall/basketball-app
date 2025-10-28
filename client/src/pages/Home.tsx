@@ -1,3 +1,4 @@
+import LeagueSchedule from "../components/LeagueSchedule";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import AppSnackbar from "../components/AppSnackbar";
@@ -27,6 +28,7 @@ export default function Home() {
         severity="success"
         onClose={() => setOpen(false)}
       />
+      <LeagueSchedule />
     </div>
   );
 }

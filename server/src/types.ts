@@ -33,7 +33,9 @@ export interface ITeenager {
 
 export interface IMatch {
   team_ids: String[];
-  winner_id: String;
+  start_date_time?: Date;
+  scores?: Number[];
+  winner_id?: String;
 }
 
 export interface IRound {
@@ -44,6 +46,7 @@ export interface IRound {
 
 export interface ITournament {
   id?: String;
+  start_date_time: Date;
   is_teen_tournament: Boolean;
   rounds: IRound[];
 }
