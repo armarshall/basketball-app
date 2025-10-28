@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-export const teamService = {
+const teamService = {
   // Function to add a player to a team and teamId to a player
   joinTeam: async (teamId, player) => {
     try {
@@ -29,3 +29,5 @@ export const teamService = {
     }
   },
 }
+
+export default teamService;
