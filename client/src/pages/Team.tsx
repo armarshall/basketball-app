@@ -1,9 +1,13 @@
+import TeamSelection from '../components/TeamSelection';
+
 export default function Team() {
-  return (
-    <div>
-      <h1>Team</h1>
-      <p>Team information will be displayed here.</p>
+
+	return (
+		<div>
+			<h1>Team</h1>
+			<p>Team information will be displayed here.</p>
+      <TeamSelection />
     </div>
-  );
+	);
 }
 

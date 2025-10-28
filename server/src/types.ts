@@ -11,6 +11,7 @@ export interface IGuardian {
   dateOfBirth: Date; // guardian date of birth
   email: String; // guardian email
   password: String; // guardian password
+  childId?: String; // id of child, TODO: add multiple children support
 }
 
 export interface IChild {

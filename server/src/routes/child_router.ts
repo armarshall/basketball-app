@@ -15,6 +15,30 @@ router.get("/:id", (req, res) => {
   });
 });
 
+router.patch ("/:id", async (req, res) => {
+  const { teamId } = req.body;
+  
+  if (!teamId) {
+    return res.status(400).json({ error: "teamId missing" });
+  }
+
+  try {
+    const child = await Child.findById(req.params.id);
+    if (!child) {
+      return res.status(404).json({ error: "child not found" });
+    }
+
+    // update the child's teamId
+    child.teamId = teamId;
+
+    const savedChild = await child.save();
+    return res.json(savedChild);
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ error: "internal server error" });
+  }
+});
+
 router.post("/", (req, res) => {
   const body = req.body;
 

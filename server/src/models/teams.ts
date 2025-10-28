@@ -11,8 +11,7 @@ const teamSchema = new mongoose.Schema<ITeam>({
 teamSchema.set("toJSON", {
   transform: (_document, returnedObject) => {
     returnedObject.id = returnedObject._id.toString();
-    // delete returnedObject._id; // come back to this
-    // delete returnedObject.__v;
+    // come back to this
   },
 });
 

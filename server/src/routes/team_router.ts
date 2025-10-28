@@ -1,46 +1,19 @@
 import express from "express";
-import Team from "../models/teams";
+import {
+  create_team,
+  get_all_teams,
+  get_team_by_id,
+  update_team_players,
+} from "../services/team_service";
 
 const router = express.Router();
 
-router.get("/", (_req, res) => {
-  // res.send("getting teams...");
+router.get("/", get_all_teams);
 
-  return Team.find({}).then((result) => {
-    return res.json(result);
-  });
-});
+router.get("/:id", get_team_by_id);
 
-router.get("/:id", (req, res) => {
-  return Team.findById(req.params.id).then((team) => {
-    return res.json(team);
-  });
-});
+router.patch("/:id", update_team_players);
 
-router.post("/", (req, res) => {
-  // res.send("saving a team");
-  const body = req.body;
-
-  if (!body) {
-    return res.status(400).json({ error: "content missing" });
-  }
-
-  const team = new Team({
-    name: body.name,
-    players: body.players,
-    is_teen_team: body.is_teen_team,
-  });
-
-  let error = team.validateSync();
-  if (error) {
-    console.log(error);
-    return res.status(400).json(error);
-  }
-
-  return team.save().then((savedTeam) => {
-    console.log("created team: ", savedTeam);
-    return res.json(savedTeam);
-  });
-});
+router.post("/", create_team);
 
 export default router;
