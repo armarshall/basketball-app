@@ -1,3 +1,4 @@
+// client/src/pages/ImageUpload.tsx
 import React, { useState } from 'react';
 import axios from 'axios';
 
@@ -6,12 +7,11 @@ function ImageUpload() {
 
   const handleUpload = async () => {
     if (!selectedFile) return;
-    
-    const formData = new FormData();
-    formData.append('image', selectedFile);
 
     try {
-      await axios.post('http://localhost:3000/api/images/upload', formData)
+      await axios.post('http://localhost:3000/api/images/upload', {
+        image: selectedFile
+      });
       alert('Image uploaded!');
     } catch (error) {
       console.error('Upload failed:', error);

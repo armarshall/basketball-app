@@ -2,7 +2,7 @@ import mongoose from "mongoose";
 
 mongoose.set("strictQuery", false);
 
-export const connectDB = async () => {
+const url = process.env.MONGODB_URI as string;
   const url = process.env.MONGODB_URI;
 
   if (!url) {

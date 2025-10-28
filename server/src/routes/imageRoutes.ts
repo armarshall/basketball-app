@@ -1,3 +1,4 @@
+// server/src/routes/imageRoutes.ts
 import express from 'express';
 import multer from 'multer';
 import { Image } from '../models/Image';
@@ -12,26 +13,18 @@ if (!fs.existsSync('uploads')) {
 const upload = multer({ dest: 'uploads/' });
 
 router.post('/upload', upload.single('image'), async (req: any, res: any) => {
-  try {
-    const newImage = new Image({
-      filename: req.file.filename,
-      url: `http://localhost:3000/uploads/${req.file.filename}`
-    });
-    
-    await newImage.save();
-    return res.json({ success: true, message: 'Image uploaded!', image: newImage });
-  } catch (error) {
-    return res.status(500).json({ success: false, error: 'Upload failed' });
-  }
+  const newImage = new Image({
+    filename: req.file.filename,
+    url: `http://localhost:3000/uploads/${req.file.filename}`
+  });
+  
+  await newImage.save();
+  res.json({ success: true, message: 'Image uploaded!', image: newImage });
 });
 
 router.get('/', async (_req: any, res: any) => {
-  try {
-    const images = await Image.find().sort({ uploadDate: -1 });
-    return res.json(images);
-  } catch (error) {
-    return res.status(500).json({ error: 'Failed to fetch images' });
-  }
+  const images = await Image.find().sort({ uploadDate: -1 });
+  res.json(images);
 });
 
 export default router;

@@ -1,7 +1,4 @@
-// Temporary hardcode to get it working
-process.env.MONGODB_URI = "mongodb+srv://dbadmin:dbadmin123@cluster0.gpibipl.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0";
-process.env.PORT = "3000";
-
+require("dotenv").config();
 console.log('Using MongoDB Atlas connection');
 
 import express from "express";

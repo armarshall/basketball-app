@@ -46,3 +46,10 @@ export interface ITournament {
   is_teen_tournament: Boolean;
   rounds: IRound[];
 }
+import mongoose, { Document, Schema } from 'mongoose';
+
+export interface IImage extends Document {
+  filename: string;
+  url: string;
+  uploadDate: Date;
+}
