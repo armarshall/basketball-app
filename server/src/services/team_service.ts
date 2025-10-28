@@ -37,3 +37,30 @@ export const create_team = (req: Request, res: Response) => {
     return res.json(savedTeam);
   });
 };
+
+export const update_player_team = async (req: Request, res: Response) => {
+  const { player } = req.body;
+
+  if (!player) {
+    return res.status(400).json({ error: "player data missing" });
+  }
+
+  try {
+    const team = await Team.findById(req.params.id);
+    if (!team) {
+      return res.status(404).json({ error: "team not found" });
+    }
+
+    if (team.players == null) {
+      team.players = [];
+    }
+
+    team.players.push(player);
+
+    const savedTeam = await team.save();
+    return res.json(savedTeam);
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ error: "internal server error" });
+  }
+};
