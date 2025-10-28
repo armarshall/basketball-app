@@ -1,24 +1,18 @@
 import mongoose from "mongoose";
+require("dotenv").config();
 
 mongoose.set("strictQuery", false);
 
 const url = process.env.MONGODB_URI as string;
-  const url = process.env.MONGODB_URI;
 
-  if (!url) {
-    console.error("❌ MONGODB_URI is missing — check .env file format and location");
-    process.exit(1);
-  }
-
-  console.log("🔗 Connecting to MongoDB Atlas...");
-  
-  try {
-    await mongoose.connect(url);
-    console.log("✅ Connected to MongoDB Atlas successfully");
-  } catch (error: any) {
-    console.log("❌ Error connecting to MongoDB Atlas:", error.message);
-    process.exit(1);
-  }
-};
+console.log("connecting to db: ", url);
+mongoose
+  .connect(url)
+  .then((_result) => {
+    console.log("connected to MongoDB");
+  })
+  .catch((error) => {
+    console.log("error connecting to MongoDB:", error.message);
+  });
 
 export default mongoose;
