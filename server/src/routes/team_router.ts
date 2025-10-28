@@ -3,7 +3,7 @@ import {
   create_team,
   get_all_teams,
   get_team_by_id,
-  update_player_team,
+  update_team_players,
 } from "../services/team_service";
 
 const router = express.Router();
@@ -12,7 +12,7 @@ router.get("/", get_all_teams);
 
 router.get("/:id", get_team_by_id);
 
-router.patch("/:id", update_player_team);
+router.patch("/:id", update_team_players);
 
 router.post("/", create_team);
 
