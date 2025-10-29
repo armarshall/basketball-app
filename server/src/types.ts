@@ -1,3 +1,5 @@
+import { Document } from "mongoose";
+
 export interface ITeam {
   id: String; // team id
   name: String; // team name
@@ -46,7 +48,6 @@ export interface ITournament {
   is_teen_tournament: Boolean;
   rounds: IRound[];
 }
-import mongoose, { Document, Schema } from 'mongoose';
 
 export interface IImage extends Document {
   filename: string;

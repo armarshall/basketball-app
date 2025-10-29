@@ -1,15 +1,15 @@
-import mongoose,{ Document, Schema } from 'mongoose';
+import mongoose, { Document, Schema } from "mongoose";
 
-export interface ISponsor extends Document {
-    name: string;
-    description: string;
-    logoUrl: string;
+interface ISponsor extends Document {
+  name: string;
+  description: string;
+  logoUrl: string;
 }
 
-const sponsorSchema: Schema = new Schema({
-name: {type: String, required: true},
-description: {type: String, required: true},
-logoUrl: {type: String, required: true},
+const sponsorSchema: Schema = new Schema<ISponsor>({
+  name: { type: String, required: true },
+  description: { type: String, required: true },
+  logoUrl: { type: String, required: true },
 });
 
-export const Sponsor = mongoose.model<ISponsor>('Sponsor', sponsorSchema);
+export default mongoose.model("Sponsor", sponsorSchema);
