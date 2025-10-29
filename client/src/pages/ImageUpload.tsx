@@ -11,20 +11,15 @@ function ImageUpload() {
     }
 
     const formData = new FormData();
-    formData.append('image', selectedFile); // Multer expects 'image' field name
+    formData.append('image', selectedFile);
 
     try {
-      const response = await axios.post('http://localhost:3000/api/images/upload', formData, {
+      await axios.post('http://localhost:3000/api/images/upload', formData, {
         headers: {
           'Content-Type': 'multipart/form-data'
         }
       });
-      
-      if (response.data.success) {
-        alert('Image uploaded successfully!');
-      } else {
-        alert('Upload failed: ' + response.data.error);
-      }
+      alert('Image uploaded successfully!');
     } catch (error: any) {
       console.error('Upload failed:', error);
       alert('Upload failed: ' + (error.response?.data?.error || error.message));
@@ -32,13 +27,17 @@ function ImageUpload() {
   };
 
   return (
-    <div style={{ padding: '20px' }}>
-      <h2>Upload Image</h2>
+    <div style={{ padding: '20px', textAlign: 'center' }}>
+      <h2>Upload Sponsor Logo</h2>
+      <p>Select an image file to upload as a sponsor logo:</p>
+      
       <input 
         type="file" 
         accept="image/*"
         onChange={(e) => setSelectedFile(e.target.files?.[0] || null)} 
+        style={{ margin: '20px 0' }}
       />
+      <br />
       <button onClick={handleUpload}>Upload Image</button>
     </div>
   );

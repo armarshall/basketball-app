@@ -2,45 +2,92 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 
-interface Sponsor {
+interface Image {
   _id: string;
-  name: string;
-  description: string;
-  logoUrl: string;
-  website?: string;
+  filename: string;
+  url: string;
+  uploadDate: string;
 }
 
 function Sponsors() {
-  const [sponsors, setSponsors] = useState<Sponsor[]>([]);
+  const [sponsorImages, setSponsorImages] = useState<Image[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetchSponsors();
+    fetchSponsorImages();
   }, []);
 
-  const fetchSponsors = async () => {
+  const fetchSponsorImages = async () => {
     try {
-      const response = await axios.get('http://localhost:3000/api/sponsors');
-      setSponsors(response.data);
+      const response = await axios.get('http://localhost:3000/api/images');
+      setSponsorImages(response.data);
     } catch (error) {
-      console.error('Error fetching sponsors:', error);
+      console.error('Error fetching sponsor images:', error);
     } finally {
       setLoading(false);
     }
   };
 
+  const getSponsorName = (filename: string): string => {
+    const cleanName = filename
+      .replace(/\d+-/g, '') // Remove timestamp
+      .replace(/\.\w+$/, '') // Remove file extension
+      .replace(/-/g, ' ') // Replace hyphens with spaces
+      .toUpperCase(); // Convert to uppercase
+    
+    return cleanName;
+  };
+
   if (loading) return <div>Loading sponsors...</div>;
 
   return (
-    <div>
+    <div style={{ padding: '40px', textAlign: 'center' }}>
       <h1>Our Sponsors</h1>
-      {sponsors.map(sponsor => (
-        <div key={sponsor._id}>
-          <img src={sponsor.logoUrl} alt={sponsor.name} />
-          <h3>{sponsor.name}</h3>
-          <p>{sponsor.description}</p>
+      <p>Thank you to our amazing sponsors who support our team:</p>
+      
+      {sponsorImages.length === 0 ? (
+        <p>No sponsor images found.</p>
+      ) : (
+        <div style={{ 
+          display: 'flex', 
+          flexWrap: 'wrap',
+          justifyContent: 'center',
+          gap: '40px',
+          marginTop: '40px'
+        }}>
+          {sponsorImages.map((image) => (
+            <div 
+              key={image._id}
+              style={{
+                padding: '20px',
+                textAlign: 'center'
+              }}
+            >
+              <img 
+                src={image.url} 
+                alt="Sponsor logo"
+                style={{
+                  width: '200px',
+                  height: '200px',
+                  objectFit: 'contain',
+                  display: 'block',
+                  margin: '0 auto',
+                  backgroundColor: '#f5f5f5',
+                  borderRadius: '8px'
+                }}
+              />
+              
+              <h3 style={{ margin: '15px 0 5px 0' }}>
+                {getSponsorName(image.filename)}
+              </h3>
+              
+              <p style={{ color: '#666', fontStyle: 'italic', margin: 0 }}>
+                Official Partner
+              </p>
+            </div>
+          ))}
         </div>
-      ))}
+      )}
     </div>
   );
 }

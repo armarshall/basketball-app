@@ -13,11 +13,7 @@ export default function MenuAppBar() {
         <Button href="/team" color="secondary" sx={{ textTransform: "none" }}>
           Team
         </Button>
-        <Button
-          href="/standings"
-          color="secondary"
-          sx={{ textTransform: "none" }}
-        >
+        <Button href="/standings" color="secondary" sx={{ textTransform: "none" }}>
           Standings
         </Button>
         <Button href="/about" color="secondary" sx={{ textTransform: "none" }}>
@@ -25,6 +21,9 @@ export default function MenuAppBar() {
         </Button>
         <Button href="/sponsors" color="secondary" sx={{ textTransform: "none" }}>
           Sponsors
+        </Button>
+        <Button href="/upload" color="secondary" sx={{ textTransform: "none" }}>
+          Upload
         </Button>
         <Button href="/signup" variant="outlined" color="secondary">
           Sign Up
