@@ -1,3 +1,5 @@
+import { Document } from "mongoose";
+
 export interface ITeam {
   id: String; // team id
   name: String; // team name
@@ -49,4 +51,10 @@ export interface ITournament {
   start_date_time: Date;
   is_teen_tournament: Boolean;
   rounds: IRound[];
+}
+
+export interface IImage extends Document {
+  filename: string;
+  url: string;
+  uploadDate: Date;
 }
