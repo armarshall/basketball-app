@@ -1,8 +1,9 @@
-import { Box, TextField, Button, Typography } from "@mui/material";
+import { TextField, Button, Typography } from "@mui/material";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import ChildForm from "./ChildForm";
+import FormContainer from "./FormContainer";
 
 // Utility function to calculate age from date of birth
 const calculateAge = (dateOfBirth: string): number => {
@@ -167,91 +168,64 @@ export default function RegistrationForm({ type }: RegistrationFormProps) {
   };
 
   return (
-    <>
-      <Typography gutterBottom variant="h4">
-        {getTitle()}
-      </Typography>
-      <Box
-        component="form"
-        sx={{
-          display: "flex",
-          flexDirection: "column",
-          justifyContent: "center",
-          alignItems: "center",
-          border: 1,
-          borderColor: "divider",
-          borderRadius: 2,
-          maxWidth: "500px",
-          width: "100%",
-          padding: "20px",
-          "& .MuiTextField-root": { m: 0.5, width: "100%", maxWidth: "300px" },
-          "& .MuiButton-root": { m: 0.5, width: "100%", maxWidth: "300px" },
-        }}
-        noValidate
-        autoComplete="off"
-      >
-        <TextField
-          label="Name"
-          required
-          value={formData.name}
-          onChange={handleInputChange("name")}
-        />
-        <TextField
-          label="Date of Birth"
-          type="date"
-          required
-          value={formData.dateOfBirth}
-          onChange={handleInputChange("dateOfBirth")}
-          slotProps={{ inputLabel: { shrink: true } }}
-        />
-        {type === "child" && (
-          <Typography
-            variant="body2"
-            color="text.secondary"
-            sx={{ mt: 1, mb: 1 }}
-          >
-            Note: This child will be linked to the guardian who is currently
-            logged in.
-          </Typography>
-        )}
-        {type !== "child" && (
-          <>
-            <TextField
-              label="Email"
-              type="email"
-              required
-              value={formData.email}
-              onChange={handleInputChange("email")}
-            />
-            <TextField
-              label="Password"
-              type="password"
-              required
-              value={formData.password}
-              onChange={handleInputChange("password")}
-            />
-            <TextField
-              label="Confirm Password"
-              type="password"
-              required
-              value={formData.confirmPassword}
-              onChange={handleInputChange("confirmPassword")}
-            />
-          </>
-        )}
-        {error && (
-          <Typography color="error" variant="body2">
-            {error}
-          </Typography>
-        )}
-        <Button
-          variant="contained"
-          onClick={handleNext}
-          disabled={isSubmitting}
+    <FormContainer title={getTitle()}>
+      <TextField
+        label="Name"
+        required
+        value={formData.name}
+        onChange={handleInputChange("name")}
+      />
+      <TextField
+        label="Date of Birth"
+        type="date"
+        required
+        value={formData.dateOfBirth}
+        onChange={handleInputChange("dateOfBirth")}
+        slotProps={{ inputLabel: { shrink: true } }}
+      />
+      {type === "child" && (
+        <Typography
+          variant="body2"
+          color="text.secondary"
+          sx={{ mt: 1, mb: 1 }}
         >
-          {isSubmitting ? "Submitting..." : getButtonText()}
-        </Button>
-      </Box>
-    </>
+          Note: This child will be linked to the guardian who is currently
+          logged in.
+        </Typography>
+      )}
+      {type !== "child" && (
+        <>
+          <TextField
+            label="Email"
+            type="email"
+            required
+            value={formData.email}
+            onChange={handleInputChange("email")}
+          />
+          <TextField
+            label="Password"
+            type="password"
+            required
+            value={formData.password}
+            onChange={handleInputChange("password")}
+          />
+          <TextField
+            label="Confirm Password"
+            type="password"
+            required
+            value={formData.confirmPassword}
+            onChange={handleInputChange("confirmPassword")}
+          />
+        </>
+      )}
+      {error && (
+        <Typography color="error" variant="body2">
+          {error}
+        </Typography>
+      )}
+      <Button variant="contained" onClick={handleNext} disabled={isSubmitting}>
+        {isSubmitting ? "Submitting..." : getButtonText()}
+      </Button>
+    </FormContainer>
   );
 }
