@@ -3,7 +3,7 @@ import {
   create_guardian,
   get_all_guardians,
   get_guardian_by_id,
-} from "../services/guardian_service";
+} from "../controllers/guardian_controller";
 
 const router = express.Router();
 

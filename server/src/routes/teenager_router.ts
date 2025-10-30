@@ -4,7 +4,7 @@ import {
   get_all_teenagers,
   get_teenager_by_id,
   update_teenager_team,
-} from "../services/teenager_service";
+} from "../controllers/teenager_controller";
 
 const router = express.Router();
 
