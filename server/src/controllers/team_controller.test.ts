@@ -5,7 +5,9 @@ import {
   get_all_teams,
   get_team_by_id,
   update_team_players,
+  get_team_players,
 } from "./team_controller";
+import Team from "../models/teams";
 
 describe("team controller", () => {
   let mock_json: jest.Mock;
@@ -85,6 +87,47 @@ describe("team controller", () => {
 
     await update_team_players(req, res);
 
+    expect(mock_status).toHaveBeenCalledWith(500);
+    expect(mock_json).toHaveBeenCalledWith({ error: "internal server error" });
+  });
+
+  test("get team players", async () => {
+    const req = {
+      params: {
+        id: "68f902e22c24602e73bfb19d" as String,
+      },
+    } as any;
+
+    await get_team_players(req, res);
+    expect(mock_json).toHaveBeenCalled();
+  });
+
+  test("get team players - team not found returns 404", async () => {
+    jest.spyOn(Team as any, "findById").mockResolvedValue(null as any);
+
+    const req = {
+      params: {
+        id: "does-not-exist" as String,
+      },
+    } as any;
+
+    await get_team_players(req, res);
+    expect(mock_status).toHaveBeenCalledWith(404);
+    expect(mock_json).toHaveBeenCalledWith({ error: "team not found" });
+  });
+
+  test("get team players - internal error returns 500", async () => {
+    jest
+      .spyOn(Team as any, "findById")
+      .mockRejectedValue(new Error("db error"));
+
+    const req = {
+      params: {
+        id: "err" as String,
+      },
+    } as any;
+
+    await get_team_players(req, res);
     expect(mock_status).toHaveBeenCalledWith(500);
     expect(mock_json).toHaveBeenCalledWith({ error: "internal server error" });
   });
