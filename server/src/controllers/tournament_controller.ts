@@ -129,7 +129,7 @@ export const create_tournament = (req: Request, res: Response) => {
   return Team.find({}).then((teams) => {
     const tournament_data = generate_tournament(
       teams,
-      body.week_of,
+      new Date(body.week_of),
       body.is_teen_team
     );
 
