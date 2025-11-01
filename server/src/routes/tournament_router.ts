@@ -4,7 +4,7 @@ import {
   create_tournament,
   get_all_tounaments,
   get_tournament_by_id,
-} from "../services/tournament_service";
+} from "../controllers/tournament_controller";
 
 const router = express.Router();
 

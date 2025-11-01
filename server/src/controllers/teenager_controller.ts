@@ -60,3 +60,5 @@ export const update_teenager_team = async (req: Request, res: Response) => {
     return res.status(500).json({ error: "internal server error" });
   }
 };
+
+

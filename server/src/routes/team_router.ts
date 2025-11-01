@@ -4,7 +4,7 @@ import {
   get_all_teams,
   get_team_by_id,
   update_team_players,
-} from "../services/team_service";
+} from "../controllers/team_controller";
 
 const router = express.Router();
 

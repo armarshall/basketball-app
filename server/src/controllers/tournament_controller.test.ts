@@ -7,7 +7,7 @@ import {
   get_all_tounaments,
   get_tournament_by_id,
   shuffle,
-} from "./tournament_service";
+} from "./tournament_controller";
 
 describe("tournament controller", () => {
   test("generate a tournament", () => {
@@ -161,3 +161,5 @@ describe("tournament controller", () => {
     expect(mock_json).toHaveBeenCalled();
   });
 });
+
+

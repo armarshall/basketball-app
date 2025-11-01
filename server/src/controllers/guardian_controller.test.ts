@@ -5,7 +5,7 @@ import {
   create_guardian,
   get_all_guardians,
   get_guardian_by_id,
-} from "./guardian_service";
+} from "./guardian_controller";
 
 describe("guardian controller", () => {
   beforeEach(async () => {
@@ -129,3 +129,5 @@ describe("guardian controller", () => {
     expect(mock_json).toHaveBeenCalled();
   });
 });
+
+

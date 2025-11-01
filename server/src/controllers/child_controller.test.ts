@@ -5,7 +5,7 @@ import {
   get_all_children,
   get_child_by_id,
   update_child_team,
-} from "./child_service";
+} from "./child_controller";
 
 describe("child controller", () => {
   test("get all children", async () => {
@@ -162,3 +162,5 @@ describe("child controller", () => {
     expect(mock_json).toHaveBeenCalled();
   });
 });
+
+

@@ -1,11 +1,11 @@
-import { describe, expect, test, jest } from "@jest/globals";
+import { describe, expect, test, jest, beforeEach } from "@jest/globals";
 
 import {
   create_team,
   get_all_teams,
   get_team_by_id,
   update_team_players,
-} from "./team_service";
+} from "./team_controller";
 
 describe("team controller", () => {
   let mock_json: jest.Mock;

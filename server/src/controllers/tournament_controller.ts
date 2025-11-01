@@ -11,8 +11,8 @@ export function shuffle<T>(arr: T[]) {
 /**
  * Gets the next Saturday of the given date
  * date:    date to find the next Saturday for
- * return:  1 Saturday from date 
-*/
+ * return:  1 Saturday from date
+ */
 function getNextSaturday(date: Date): Date {
   // 0 = Sunday, 6 = Saturday
   const currentDay = date.getDay();
@@ -26,11 +26,11 @@ function getNextSaturday(date: Date): Date {
 
 export const generate_tournament = (
   teams: ITeam[],
-  week_of: Date, 
-  is_teen_team: Boolean,
+  week_of: Date,
+  is_teen_team: Boolean
 ): ITournament => {
   const eligible_teams = teams.filter(
-    (team) => team.is_teen_team === is_teen_team,
+    (team) => team.is_teen_team === is_teen_team
   );
 
   console.log("number of eligble teams: ", eligible_teams.length);
@@ -59,7 +59,12 @@ export const generate_tournament = (
 
   let first_round: IRound = { matches };
 
-  return { id: "", start_date_time: week_of, rounds: [first_round], is_teen_tournament: is_teen_team };
+  return {
+    id: "",
+    start_date_time: week_of,
+    rounds: [first_round],
+    is_teen_tournament: is_teen_team,
+  };
 };
 
 export const generate_next_round = (tournament: ITournament): Boolean => {
@@ -122,7 +127,11 @@ export const create_tournament = (req: Request, res: Response) => {
   }
 
   return Team.find({}).then((teams) => {
-    const tournament_data = generate_tournament(teams, body.is_teen_team);
+    const tournament_data = generate_tournament(
+      teams,
+      body.week_of,
+      body.is_teen_team
+    );
 
     const tournament = new Tournament(tournament_data);
     let error = tournament.validateSync();
