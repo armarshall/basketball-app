@@ -1,6 +1,6 @@
 import mongoose from "../database";
-import bcrypt from "bcryptjs";
 import { ITeenager } from "../types";
+import { hashPassword } from "../services/hashing";
 
 const teenagerSchema = new mongoose.Schema<ITeenager>({
   id: { type: String },
@@ -28,8 +28,7 @@ teenagerSchema.pre("save", async function (next) {
     return next();
   }
   try {
-    const salt = await bcrypt.genSalt(10);
-    doc.password = await bcrypt.hash(doc.password, salt);
+    doc.password = await hashPassword(doc.password);
     next();
   } catch (err) {
     next(err as any);

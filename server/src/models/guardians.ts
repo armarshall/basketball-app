@@ -1,6 +1,6 @@
 import mongoose from "../database";
-import bcrypt from "bcryptjs";
 import { IGuardian } from "../types";
+import { hashPassword } from "../services/hashing";
 
 const guardianSchema = new mongoose.Schema<IGuardian>({
   id: { type: String },
@@ -28,8 +28,7 @@ guardianSchema.pre("save", async function (next) {
     return next();
   }
   try {
-    const salt = await bcrypt.genSalt(10);
-    doc.password = await bcrypt.hash(doc.password, salt);
+    doc.password = await hashPassword(doc.password);
     next();
   } catch (err) {
     next(err as any);
