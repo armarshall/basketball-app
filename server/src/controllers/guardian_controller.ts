@@ -1,6 +1,6 @@
 import Guardian from "../models/guardians";
 import { Request, Response } from "express";
-import { validatePassword } from "../services/log_in_service";
+import { validatePassword } from "../services/hashing";
 
 export const get_all_guardians = async (_req: Request, res: Response) => {
   return Guardian.find({}).then((result) => {

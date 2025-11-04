@@ -1,6 +1,6 @@
 import Teenager from "../models/teenagers";
 import { Request, Response } from "express";
-import { validatePassword } from "../services/log_in_service";
+import { validatePassword } from "../services/hashing";
 
 export const get_all_teenagers = async (_req: Request, res: Response) => {
   return Teenager.find({}).then((result) => {
