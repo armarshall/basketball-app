@@ -1,97 +1,36 @@
-export interface Player {
-  id: string;
-  name: string;
-  position: string;
-  teamId: string | null;
-  jerseyNumber: number;
-  height?: string; // Optional: e.g., "6'5""
-  weight?: number; // Optional: in pounds
-  createdAt: Date;
-  updatedAt: Date;
-}
+import mongoose from "../database";
+import { Player, PlayerPosition } from "../types";
 
-export interface CreatePlayerRequest {
-  name: string;
-  position: string;
-  teamId?: string | null;
-  jerseyNumber: number;
-  height?: string;
-  weight?: number;
-}
-
-export interface UpdatePlayerRequest {
-  name?: string;
-  position?: string;
-  teamId?: string | null;
-  jerseyNumber?: number;
-  height?: string;
-  weight?: number;
-}
-
-export interface PlayerResponse {
-  id: string;
-  name: string;
-  position: string;
-  teamId: string | null;
-  jerseyNumber: number;
-  height?: string;
-  weight?: number;
-  createdAt: string;
-  updatedAt: string;
-}
-
-// Utility function to convert Player to PlayerResponse (for API responses)
-export const playerToResponse = (player: Player): PlayerResponse => ({
-  id: player.id,
-  name: player.name,
-  position: player.position,
-  teamId: player.teamId,
-  jerseyNumber: player.jerseyNumber,
-  height: player.height,
-  weight: player.weight,
-  createdAt: player.createdAt.toISOString(),
-  updatedAt: player.updatedAt.toISOString()
+const playerSchema = new mongoose.Schema<Player>({
+  name: { type: String, required: true },
+  position: { 
+    type: String, 
+    required: true,
+    enum: Object.values(PlayerPosition)
+  },
+  teamId: { 
+    type: mongoose.Schema.Types.ObjectId, 
+    ref: 'Team',
+    default: null 
+  },
+  jerseyNumber: { 
+    type: Number, 
+    required: true,
+    min: 0,
+    max: 99
+  },
+  height: { type: String },
+  weight: { type: Number }
+}, {
+  timestamps: true // This will automatically add createdAt and updatedAt
 });
 
-// Position enum for consistent values
-export enum PlayerPosition {
-  POINT_GUARD = 'Point Guard',
-  SHOOTING_GUARD = 'Shooting Guard',
-  SMALL_FORWARD = 'Small Forward',
-  POWER_FORWARD = 'Power Forward',
-  CENTER = 'Center'
-}
+playerSchema.set("toJSON", {
+  transform: (_document, returnedObject) => {
+    returnedObject.id = returnedObject._id.toString();
+    delete returnedObject._id;
+    delete returnedObject.__v;
+  },
+});
 
-// Validation functions
-export const validateCreatePlayerRequest = (data: any): { isValid: boolean; errors: string[] } => {
-  const errors: string[] = [];
-
-  if (!data.name || typeof data.name !== 'string' || data.name.trim().length === 0) {
-    errors.push('Name is required and must be a non-empty string');
-  }
-
-  if (!data.position || typeof data.position !== 'string' || data.name.trim().length === 0) {
-    errors.push('Position is required');
-  } else if (!Object.values(PlayerPosition).includes(data.position as PlayerPosition)) {
-    errors.push(`Position must be one of: ${Object.values(PlayerPosition).join(', ')}`);
-  }
-
-  if (data.jerseyNumber === undefined || typeof data.jerseyNumber !== 'number') {
-    errors.push('Jersey number is required and must be a number');
-  } else if (data.jerseyNumber < 0 || data.jerseyNumber > 99) {
-    errors.push('Jersey number must be between 0 and 99');
-  }
-
-  if (data.height && typeof data.height !== 'string') {
-    errors.push('Height must be a string');
-  }
-
-  if (data.weight && typeof data.weight !== 'number') {
-    errors.push('Weight must be a number');
-  }
-
-  return {
-    isValid: errors.length === 0,
-    errors
-  };
-};
+export default mongoose.model<Player>("Player", playerSchema);
