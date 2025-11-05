@@ -1,6 +1,8 @@
 import Child from "../models/children";
 import { Request, Response } from "express";
 
+import { GameStats } from "../types";
+
 export const get_all_children = async (_req: Request, res: Response) => {
   return Child.find({}).then((result) => {
     return res.json(result);
@@ -54,6 +56,96 @@ export const update_child_team = async (req: Request, res: Response) => {
 
     const savedChild = await child.save();
     return res.json(savedChild);
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ error: "internal server error" });
+  }
+};
+
+export const get_child_stats = async (req: Request, res: Response) => {
+  if (!req.params.id) {
+    return res.status(400).json({ error: "no id specified" });
+  }
+
+  try {
+    const child = await Child.findById(req.params.id);
+
+    if (!child) {
+      return res.status(404).json({ error: "child not found" });
+    }
+
+    return res.json(child.game_stats);
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ error: "internal server error" });
+  }
+};
+
+export const add_child_stats = async (req: Request, res: Response) => {
+  const { game_stats }: { game_stats: GameStats | undefined } = req.body ?? {};
+
+  if (!req.params.id) {
+    return res.status(400).json({ error: "no id specified" });
+  }
+
+  if (!game_stats) {
+    return res.status(400).json({ error: "gameStats missing" });
+  }
+
+  try {
+    const child = await Child.findById(req.params.id);
+
+    if (!child) {
+      return res.status(404).json({ error: "child not found" });
+    }
+
+    child.game_stats.push(game_stats);
+
+    const saved_child = await child.save();
+    return res.json(saved_child);
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ error: "internal server error" });
+  }
+};
+
+export const update_child_stats = async (req: Request, res: Response) => {
+  interface expected_body {
+    game_stats: GameStats | undefined;
+    game_id: String | undefined;
+  }
+
+  const { game_stats, game_id }: expected_body = req.body ?? {};
+
+  if (!req.params.id) {
+    return res.status(400).json({ error: "no id specified" });
+  }
+
+  if (!game_stats) {
+    return res.status(400).json({ error: "game_stats missing :(" });
+  }
+
+  if (!game_id) {
+    return res.status(400).json({ error: "game_id missing :(" });
+  }
+
+  try {
+    const child = await Child.findById(req.params.id);
+
+    if (!child) {
+      return res.status(400).json({ error: "child not found" });
+    }
+
+    const index = child.game_stats.findIndex((e) => e.game_id === game_id);
+
+    if (index === -1) {
+      return res.status(400).json({ error: "couldn't find game to update" });
+    }
+
+    child.game_stats[index] = game_stats;
+
+    const saved_child = await child.save();
+    return res.json(saved_child);
   } catch (err) {
     console.error(err);
     return res.status(500).json({ error: "internal server error" });

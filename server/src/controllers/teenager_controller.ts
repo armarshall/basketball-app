@@ -2,6 +2,8 @@ import Teenager from "../models/teenagers";
 import { Request, Response } from "express";
 import { validatePassword } from "../services/hashing";
 
+import { GameStats } from "../types";
+
 export const get_all_teenagers = async (_req: Request, res: Response) => {
   return Teenager.find({}).then((result) => {
     return res.json(result);
@@ -53,7 +55,7 @@ export const check_teenager_hash = async (req: Request, res: Response) => {
 
   const isValidPassword = await validatePassword(
     password,
-    teenager.password as string // because yelling at me that String instead of string
+    teenager.password as string, // because yelling at me that String instead of string
   );
   if (isValidPassword) {
     const user = {
@@ -81,6 +83,96 @@ export const update_teenager_team = async (req: Request, res: Response) => {
     }
 
     teenager.teamId = teamId;
+
+    const savedTeenager = await teenager.save();
+    return res.json(savedTeenager);
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ error: "internal server error" });
+  }
+};
+
+export const get_teenager_stats = async (req: Request, res: Response) => {
+  if (!req.params.id) {
+    return res.status(400).json({ error: "no id specified" });
+  }
+
+  try {
+    const teenager = await Teenager.findById(req.params.id);
+
+    if (!teenager) {
+      return res.status(404).json({ error: "teen not found" });
+    }
+
+    return res.json(teenager.game_stats);
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ error: "internal server error" });
+  }
+};
+
+export const add_teenager_stats = async (req: Request, res: Response) => {
+  const { game_stats }: { game_stats: GameStats | undefined } = req.body ?? {};
+
+  if (!req.params.id) {
+    return res.status(400).json({ error: "no id specified" });
+  }
+
+  if (!game_stats) {
+    return res.status(400).json({ error: "gameStats missing" });
+  }
+
+  try {
+    const teenager = await Teenager.findById(req.params.id);
+
+    if (!teenager) {
+      return res.status(404).json({ error: "teenager not found" });
+    }
+
+    teenager.game_stats.push(game_stats);
+
+    const savedTeenager = await teenager.save();
+    return res.json(savedTeenager);
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ error: "internal server error" });
+  }
+};
+
+export const update_teenager_stats = async (req: Request, res: Response) => {
+  interface expected_body {
+    game_stats: GameStats | undefined;
+    game_id: String | undefined;
+  }
+
+  const { game_stats, game_id }: expected_body = req.body ?? {};
+
+  if (!req.params.id) {
+    return res.status(400).json({ error: "no id specified" });
+  }
+
+  if (!game_stats) {
+    return res.status(400).json({ error: "game_stats missing :(" });
+  }
+
+  if (!game_id) {
+    return res.status(400).json({ error: "game_id missing :(" });
+  }
+
+  try {
+    const teenager = await Teenager.findById(req.params.id);
+
+    if (!teenager) {
+      return res.status(400).json({ error: "teenager not found" });
+    }
+
+    const index = teenager.game_stats.findIndex((e) => e.game_id === game_id);
+
+    if (index === -1) {
+      return res.status(400).json({ error: "couldn't find game to update" });
+    }
+
+    teenager.game_stats[index] = game_stats;
 
     const savedTeenager = await teenager.save();
     return res.json(savedTeenager);
