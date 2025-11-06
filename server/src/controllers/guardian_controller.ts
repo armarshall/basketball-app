@@ -1,5 +1,6 @@
 import Guardian from "../models/guardians";
 import { Request, Response } from "express";
+import { validatePassword } from "../services/hashing";
 
 export const get_all_guardians = async (_req: Request, res: Response) => {
   return Guardian.find({}).then((result) => {
@@ -11,6 +12,35 @@ export const get_guardian_by_id = async (req: Request, res: Response) => {
   return Guardian.findById(req.params.id).then((guardian) => {
     return res.json(guardian);
   });
+};
+
+export const get_guardian_by_email = async (req: Request, res: Response) => {
+  return Guardian.findOne({ email: req.params.email }).then((guardian) => {
+    return res.json(guardian);
+  });
+};
+
+export const check_guardian_hash = async (req: Request, res: Response) => {
+  const { email, password } = req.body;
+  const guardian = await Guardian.findOne({ email: email });
+
+  if (!guardian) return res.json({ success: false, error: "no guardian" });
+
+  const isValidPassword = await validatePassword(
+    password,
+    guardian.password as string // because yelling at me that String instead of string
+  );
+  if (isValidPassword) {
+    const user = {
+      id: guardian._id,
+      email: guardian.email,
+      name: guardian.name,
+      childId: guardian.childId,
+    };
+    return res.json({ success: true, user: user });
+  } else {
+    return res.json({ success: false });
+  }
 };
 
 export const create_guardian = (req: Request, res: Response) => {
@@ -37,5 +67,3 @@ export const create_guardian = (req: Request, res: Response) => {
     return res.json(savedGuardian);
   });
 };
-
-

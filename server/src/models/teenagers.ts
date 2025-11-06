@@ -1,5 +1,6 @@
 import mongoose from "../database";
 import { ITeenager } from "../types";
+import { hashPassword } from "../services/hashing";
 
 const teenagerSchema = new mongoose.Schema<ITeenager>({
   id: { type: String },
@@ -13,9 +14,25 @@ const teenagerSchema = new mongoose.Schema<ITeenager>({
 teenagerSchema.set("toJSON", {
   transform: (_document, returnedObject) => {
     returnedObject.id = returnedObject._id.toString();
+    // Ensure password is never sent in API responses
+    delete (returnedObject as any).password;
     // delete returnedObject._id; // come back to this
     // delete returnedObject.__v;
   },
+});
+
+// Hash password before saving if it has been modified
+teenagerSchema.pre("save", async function (next) {
+  const doc = this as any;
+  if (!doc.isModified("password")) {
+    return next();
+  }
+  try {
+    doc.password = await hashPassword(doc.password);
+    next();
+  } catch (err) {
+    next(err as any);
+  }
 });
 
 export default mongoose.model("Teenager", teenagerSchema);
