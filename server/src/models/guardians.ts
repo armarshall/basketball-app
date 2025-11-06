@@ -9,6 +9,7 @@ const guardianSchema = new mongoose.Schema<IGuardian>({
   email: { type: String, required: true, unique: true },
   password: { type: String, required: true },
   childId: { type: String, required: false },
+  isAdmin: { type: Boolean, default: false },
 });
 
 guardianSchema.set("toJSON", {

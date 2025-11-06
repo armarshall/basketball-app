@@ -36,6 +36,7 @@ export const check_guardian_hash = async (req: Request, res: Response) => {
       email: guardian.email,
       name: guardian.name,
       childId: guardian.childId,
+      isAdmin: guardian.isAdmin || false,
     };
     return res.json({ success: true, user: user });
   } else {
