@@ -28,7 +28,7 @@ export const requireAdmin = async (
     }
 
     // User is admin, proceed to next middleware/controller
-    next();
+    return next();
   } catch (err) {
     console.error("Admin auth error:", err);
     return res.status(500).json({ error: "Authorization failed" });
