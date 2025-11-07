@@ -14,6 +14,7 @@ export interface IGuardian {
   email: String; // guardian email
   password: String; // guardian password
   childId?: String; // id of child, TODO: add multiple children support
+  isAdmin?: Boolean; // whether guardian has admin privileges
 }
 
 export interface IChild {
