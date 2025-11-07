@@ -1,4 +1,6 @@
 import Team from "../models/teams";
+import Child from "../models/children";
+import Teenager from "../models/teenagers";
 import { Request, Response } from "express";
 
 export const get_all_teams = async (_req: Request, res: Response) => {
@@ -59,6 +61,31 @@ export const update_team_players = async (req: Request, res: Response) => {
 
     const savedTeam = await team.save();
     return res.json(savedTeam);
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ error: "internal server error" });
+  }
+};
+
+export const get_team_players = async (req: Request, res: Response) => {
+  try {
+    const team = await Team.findById(req.params.id);
+    if (!team) {
+      return res.status(404).json({ error: "team not found" });
+    }
+
+    const teamId = (team as any)._id?.toString();
+    if (!teamId) {
+      return res.status(500).json({ error: "invalid team id" });
+    }
+
+    if (team.is_teen_team) {
+      const players = await Teenager.find({ teamId });
+      return res.json(players);
+    } else {
+      const players = await Child.find({ teamId });
+      return res.json(players);
+    }
   } catch (err) {
     console.error(err);
     return res.status(500).json({ error: "internal server error" });
