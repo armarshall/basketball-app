@@ -1,7 +1,13 @@
-import mongoose from "../database";
-import { Schema } from "mongoose";
+import mongoose, { Document, Schema } from "mongoose";
 
-const rulesSchema: Schema = new Schema(
+export interface IRules {
+  content: string;
+  updatedAt: Date;
+}
+
+export type RulesDocument = Document & IRules;
+
+const rulesSchema = new Schema<RulesDocument>(
   {
     content: { type: String, required: true, default: "" },
     updatedAt: { type: Date, default: Date.now },
@@ -10,8 +16,8 @@ const rulesSchema: Schema = new Schema(
 );
 
 rulesSchema.pre("save", function (next) {
-  (this as any).updatedAt = new Date();
+  this.updatedAt = new Date();
   next();
 });
 
-export default mongoose.model("Rules", rulesSchema);
+export default mongoose.model<RulesDocument>("Rules", rulesSchema);

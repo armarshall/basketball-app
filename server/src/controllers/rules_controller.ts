@@ -1,16 +1,16 @@
 import { Request, Response } from "express";
-import Rules from "../models/rules";
+import Rules, { RulesDocument } from "../models/rules";
 
 export const get_rules = async (_req: Request, res: Response) => {
   try {
-    let doc = await Rules.findOne({});
+    let doc = (await Rules.findOne({})) as RulesDocument | null;
     if (!doc) {
-      doc = await Rules.create({});
+      doc = (await Rules.create({})) as RulesDocument;
     }
     return res.json({
-      id: (doc as any)._id.toString(),
-      content: (doc as any).content,
-      updatedAt: (doc as any).updatedAt,
+      id: String(doc._id),
+      content: doc.content,
+      updatedAt: doc.updatedAt,
     });
   } catch (err) {
     console.error("Failed to fetch rules", err);
@@ -25,17 +25,17 @@ export const update_rules = async (req: Request, res: Response) => {
       return res.status(400).json({ error: "content must be a string" });
     }
 
-    let doc = await Rules.findOne({});
+    let doc = (await Rules.findOne({})) as RulesDocument | null;
     if (!doc) {
-      doc = new Rules({ content });
+      doc = new Rules({ content }) as RulesDocument;
     } else {
-      (doc as any).content = content;
+      doc.content = content;
     }
     await doc.save();
     return res.json({
-      id: (doc as any)._id.toString(),
-      content: (doc as any).content,
-      updatedAt: (doc as any).updatedAt,
+      id: String(doc._id),
+      content: doc.content,
+      updatedAt: doc.updatedAt,
     });
   } catch (err) {
     console.error("Failed to update rules", err);
