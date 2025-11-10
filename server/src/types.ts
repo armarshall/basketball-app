@@ -10,7 +10,7 @@ export interface Statline {
   field_goals_made: number;
   field_goals_attempted: number;
   three_pointers_made: number;
-  threee_pointers_attempted: number;
+  three_pointers_attempted: number;
   personal_fouls: number;
   minutes: number;
 }

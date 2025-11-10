@@ -1,7 +1,7 @@
 import Child from "../models/children";
 import { Request, Response } from "express";
 
-import { GameStats } from "../types";
+import { GameStats, Statline } from "../types";
 
 export const get_all_children = async (_req: Request, res: Response) => {
   return Child.find({}).then((result) => {
@@ -111,9 +111,11 @@ export const add_child_stats = async (req: Request, res: Response) => {
 
 export const update_child_stats = async (req: Request, res: Response) => {
   interface expected_body {
-    game_stats: GameStats | undefined;
+    game_stats: Statline | undefined;
     game_id: String | undefined;
   }
+
+  console.log(req.body);
 
   const { game_stats, game_id }: expected_body = req.body ?? {};
 
@@ -121,7 +123,7 @@ export const update_child_stats = async (req: Request, res: Response) => {
     return res.status(400).json({ error: "no id specified" });
   }
 
-  if (!game_stats) {
+  if (!game_stats || Object.keys(game_stats).length === 0) {
     return res.status(400).json({ error: "game_stats missing :(" });
   }
 
@@ -142,7 +144,8 @@ export const update_child_stats = async (req: Request, res: Response) => {
       return res.status(400).json({ error: "couldn't find game to update" });
     }
 
-    child.game_stats[index] = game_stats;
+    child.game_stats[index].statline = game_stats;
+    child.markModified("game_stats");
 
     const saved_child = await child.save();
     return res.json(saved_child);

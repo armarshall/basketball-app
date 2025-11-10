@@ -2,7 +2,7 @@ import Teenager from "../models/teenagers";
 import { Request, Response } from "express";
 import { validatePassword } from "../services/hashing";
 
-import { GameStats } from "../types";
+import { GameStats, Statline } from "../types";
 
 export const get_all_teenagers = async (_req: Request, res: Response) => {
   return Teenager.find({}).then((result) => {
@@ -141,7 +141,7 @@ export const add_teenager_stats = async (req: Request, res: Response) => {
 
 export const update_teenager_stats = async (req: Request, res: Response) => {
   interface expected_body {
-    game_stats: GameStats | undefined;
+    game_stats: Statline | undefined;
     game_id: String | undefined;
   }
 
@@ -172,7 +172,8 @@ export const update_teenager_stats = async (req: Request, res: Response) => {
       return res.status(400).json({ error: "couldn't find game to update" });
     }
 
-    teenager.game_stats[index] = game_stats;
+    teenager.game_stats[index].statline = game_stats;
+    teenager.markModified("game_stats");
 
     const savedTeenager = await teenager.save();
     return res.json(savedTeenager);
