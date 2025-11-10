@@ -1,5 +1,5 @@
 import mongoose from "../database";
-import { IChild } from "../types";
+import { IChild, GameStats } from "../types";
 
 const childSchema = new mongoose.Schema<IChild>({
   id: { type: String },
@@ -7,6 +7,7 @@ const childSchema = new mongoose.Schema<IChild>({
   dateOfBirth: { type: Date, required: true },
   guardianId: { type: String, required: true }, // Children must have a guardian
   teamId: { type: String, required: false }, // Optional - for children assigned to teams
+  game_stats: Array<GameStats>, // much easy, yay!
 });
 
 childSchema.set("toJSON", {

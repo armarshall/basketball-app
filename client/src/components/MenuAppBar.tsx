@@ -1,13 +1,32 @@
 import { AppBar, Button, Toolbar } from "@mui/material";
-import { get_user_data, logout } from "../services/log_in_service";
+import { get_user_data, logout } from "../services/session_service";
+import { useState, useEffect } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
+
+interface User {
+  _id?: string;
+  id?: string;
+  name: string;
+  email: string;
+  isManager?: boolean;
+  managedTeamId?: string;
+  isAdmin?: boolean;
+  type?: "guardian" | "teen";
+}
 
 export default function MenuAppBar() {
-  const userData = get_user_data();
-  const user = userData ? JSON.parse(userData) : null;
+  const [user, setUser] = useState<User | null>(null);
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  useEffect(() => {
+    const userData = get_user_data();
+    setUser(userData ? JSON.parse(userData) : null);
+  }, [location]);
 
   const handleSignOut = () => {
     logout();
-    window.location.href = "/";
+    navigate("/");
   };
 
   return (

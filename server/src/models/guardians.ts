@@ -14,7 +14,8 @@ const guardianSchema = new mongoose.Schema<IGuardian>({
     type: mongoose.Schema.Types.ObjectId, 
     ref: 'Team',
     default: null 
-  }
+  },
+  isAdmin: { type: Boolean, default: false },
 });
 
 // Transform output when converting to JSON

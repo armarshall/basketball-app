@@ -1,5 +1,10 @@
 import express from "express";
 import Child from "../models/children";
+import {
+  add_child_stats,
+  get_child_stats,
+  update_child_stats,
+} from "../controllers/child_controller";
 
 const router = express.Router();
 
@@ -15,9 +20,9 @@ router.get("/:id", (req, res) => {
   });
 });
 
-router.patch ("/:id", async (req, res) => {
+router.patch("/id/:id", async (req, res) => {
   const { teamId } = req.body;
-  
+
   if (!teamId) {
     return res.status(400).json({ error: "teamId missing" });
   }
@@ -62,5 +67,11 @@ router.post("/", (req, res) => {
     return res.json(savedChild);
   });
 });
+
+router.get("/stats/:id", get_child_stats);
+
+router.post("/stats/:id", add_child_stats);
+
+router.patch("/stats/:id", update_child_stats);
 
 export default router;

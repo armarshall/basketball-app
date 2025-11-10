@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
-import { get_user_data } from "../services/log_in_service";
+import { get_user_data } from "../services/session_service";
 
 interface Team {
   _id: string;

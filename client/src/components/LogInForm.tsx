@@ -3,7 +3,7 @@ import FormContainer from "./FormContainer";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Box } from "@mui/material";
-import { login } from "../services/log_in_service";
+import { login } from "../services/session_service";
 
 export default function LogInForm() {
   const [formData, setFormData] = useState({

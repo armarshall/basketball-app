@@ -1,5 +1,5 @@
 import mongoose from "../database";
-import { ITeenager } from "../types";
+import { GameStats, ITeenager } from "../types";
 import { hashPassword } from "../services/hashing";
 
 const teenagerSchema = new mongoose.Schema<ITeenager>({
@@ -13,6 +13,7 @@ const teenagerSchema = new mongoose.Schema<ITeenager>({
     ref: 'Team',
     required: false 
   },
+  game_stats: Array<GameStats>,
 });
 
 // Transform output when converting to JSON

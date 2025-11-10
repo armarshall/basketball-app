@@ -9,6 +9,7 @@ import teenagerRouter from "./routes/teenager_router";
 import childRouter from "./routes/child_router";
 import tournamentRouter from "./routes/tournament_router";
 import imageRouter from "./routes/imageRoutes";
+import rulesRouter from "./routes/rules_router";
 
 const app = express();
 app.use(cors());
@@ -29,6 +30,7 @@ app.use("/api/teenagers", teenagerRouter);
 app.use("/api/children", childRouter);
 app.use("/api/tournaments", tournamentRouter);
 app.use("/api/images", imageRouter);
+app.use("/api/rules", rulesRouter);
 
 // Serve uploaded files statically
 app.use("/uploads", express.static("uploads"));
