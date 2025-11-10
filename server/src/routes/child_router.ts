@@ -15,9 +15,9 @@ router.get("/:id", (req, res) => {
   });
 });
 
-router.patch ("/:id", async (req, res) => {
+router.patch("/id/:id", async (req, res) => {
   const { teamId } = req.body;
-  
+
   if (!teamId) {
     return res.status(400).json({ error: "teamId missing" });
   }

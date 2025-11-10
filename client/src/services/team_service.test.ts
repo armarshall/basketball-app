@@ -1,33 +1,30 @@
-import { describe, expect, test } from "@jest/globals";
-import { ITeam, ITeenager, IChild, IGuardian } from "../../../server/src/types";
+import { expect, test } from "@jest/globals";
 import teamService from "./team_service";
 import axios from "axios";
 
-test("join teen team", () => {
-  const teenager = {
-    id: "te1",
-    name: "Isaiah",
-    dateOfBirth: new Date("2008-05-15"),
-    email: "i@abc.com",
-    password: "secret",
-  };
-  /*
-  // get test TEENAGER team from database mock
-  const team: ITeam = axios.get("http://localhost:3000/api/teams/68f9a21ec9d8e1d48d010c13");
-
-  // post teenager to the database
-  axios.post("http://localhost:3000/api/teenager", teenager);
+test("join teen team", async () => {
+  const teenager = await axios.get(
+    "http://localhost:3000/api/teenagers/id/68fae285c475c441b39bf744",
+  );
+  const team = await axios.get(
+    "http://localhost:3000/api/teams/68f9a21ec9d8e1d48d010c13",
+  );
   // join team
-  teamService.joinTeam(team.id, teenager);
+  await teamService.joinTeam(team.data._id, teenager.data);
 
-  const updatedTeam: ITeam = axios.get("http://localhost:3000/api/teams/68f9a21ec9d8e1d48d010c13");
-  const updatedTeenager: ITeenager = axios.get("http://localhost:3000/api/teenager/te1");
+  const updatedTeam = await axios.get(
+    "http://localhost:3000/api/teams/68f9a21ec9d8e1d48d010c13",
+  );
+  const updatedTeenager = await axios.get(
+    "http://localhost:3000/api/teenagers/id/68fae285c475c441b39bf744",
+  );
 
   // expect team and teenager to be updated in the database
-  expect(updatedTeam.players).toContain(teenager.id);
-  expect(updatedTeenager.teamId).toBe(team.id);
-  */
+  expect(updatedTeam.data.players).toContain(teenager.data.id);
+  expect(updatedTeenager.data.teamId).toBe(team.data.id);
 });
+
+test("invalid teen id", async () => {});
 
 test("guardian joins team for child", () => {
   const guardian = {
