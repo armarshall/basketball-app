@@ -66,11 +66,7 @@ describe("tournament controller", () => {
       is_teen_team: true,
     };
 
-    const tournament = generate_tournament(
-      [team1, team2, team3, team4],
-      new Date(),
-      true,
-    );
+    const tournament = generate_tournament([team1, team2, team3, team4], new Date(), true);
 
     console.log(tournament);
     console.log(tournament.rounds[0].matches);
@@ -115,11 +111,7 @@ describe("tournament controller", () => {
       is_teen_team: true,
     };
 
-    let tournament = generate_tournament(
-      [team1, team2, team3, team4],
-      new Date(),
-      true,
-    );
+    let tournament = generate_tournament([team1, team2, team3, team4], new Date(), true);
 
     tournament.rounds[0].matches[0].winner_id =
       tournament.rounds[0].matches[0].team_ids[0];

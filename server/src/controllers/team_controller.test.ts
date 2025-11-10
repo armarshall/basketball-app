@@ -57,7 +57,7 @@ describe("team controller", () => {
 
   test("update team players", async () => {
     const req = {
-      body: "abc", // player to add
+      body: { player: "abc" }, // player to add
       params: { id: "68fed5dc02763e52d791296f" }, // team id
     } as any;
 
@@ -77,15 +77,15 @@ describe("team controller", () => {
     expect(mock_json).toHaveBeenCalledWith({ error: "player data missing" });
   });
 
-  test("should return 500 when player data is empty object", async () => {
+  test("should return 400 when player data is empty object", async () => {
     const req = {
-      body: {}, // Empty player object
+      body: {}, // Empty player object (no player property)
       params: { id: "68fed5dc02763e52d791296f" },
     } as any;
 
     await update_team_players(req, res);
 
-    expect(mock_status).toHaveBeenCalledWith(500);
-    expect(mock_json).toHaveBeenCalledWith({ error: "internal server error" });
+    expect(mock_status).toHaveBeenCalledWith(400);
+    expect(mock_json).toHaveBeenCalledWith({ error: "player data missing" });
   });
 });
