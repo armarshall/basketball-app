@@ -8,20 +8,22 @@ const teenagerSchema = new mongoose.Schema<ITeenager>({
   dateOfBirth: { type: Date, required: true },
   email: { type: String, required: true, unique: true },
   password: { type: String, required: true },
-  teamId: { type: String, required: false }, // Optional - for teenagers assigned to teams
-});
-
-teenagerSchema.set("toJSON", {
-  transform: (_document, returnedObject) => {
-    returnedObject.id = returnedObject._id.toString();
-    // Ensure password is never sent in API responses
-    delete (returnedObject as any).password;
-    // delete returnedObject._id; // come back to this
-    // delete returnedObject.__v;
+  teamId: { 
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Team',
+    required: false 
   },
 });
 
-// Hash password before saving if it has been modified
+// Transform output when converting to JSON
+teenagerSchema.set("toJSON", {
+  transform: (_document, returnedObject) => {
+    returnedObject.id = returnedObject._id.toString();
+    delete (returnedObject as any).password;
+  },
+});
+
+// Hash password before saving
 teenagerSchema.pre("save", async function (next) {
   const doc = this as any;
   if (!doc.isModified("password")) {

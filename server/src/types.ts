@@ -1,59 +1,63 @@
-import { Document } from "mongoose";
+import mongoose from "mongoose";
 
 export interface ITeam {
-  id: String; // team id
-  name: String; // team name
-  players: String[]; // player ids
-  is_teen_team: Boolean; // if the team is teens or kids
+  _id?: mongoose.Types.ObjectId;
+  id?: string;
+  name: string;
+  players: mongoose.Types.ObjectId[];
+  is_teen_team: boolean;
+  managerId?: mongoose.Types.ObjectId | null;
 }
 
 export interface IGuardian {
-  id: String; // guardian id
-  name: String; // guardian name
-  dateOfBirth: Date; // guardian date of birth
-  email: String; // guardian email
-  password: String; // guardian password
-  childId?: String; // id of child, TODO: add multiple children support
-}
-
-export interface IChild {
-  id: String; // child id
-  name: String; // child name
-  dateOfBirth: Date; // child date of birth
-  guardianId: String; // guardian id
-  teamId?: String; // optional team id
+  _id?: mongoose.Types.ObjectId;
+  id?: string;
+  name: string;
+  dateOfBirth: Date;
+  email: string;
+  password: string;
+  childId?: string;
+  isManager?: boolean;
+  managedTeamId?: mongoose.Types.ObjectId | null;
 }
 
 export interface ITeenager {
-  id: String; // teenager id
-  name: String; // teenager name
-  dateOfBirth: Date; // teenager date of birth
-  email: String; // teenager email
-  password: String; // teenager password
-  teamId?: String; // optional team id
+  _id?: mongoose.Types.ObjectId;
+  id?: string;
+  name: string;
+  dateOfBirth: Date;
+  email: string;
+  password: string;
+  teamId?: mongoose.Types.ObjectId | null;
+}
+
+export interface IChild {
+  id: string;
+  name: string;
+  dateOfBirth: Date;
+  guardianId: string;
+  teamId?: string;
 }
 
 export interface IMatch {
-  team_ids: String[];
+  team_ids: string[];
   start_date_time?: Date;
-  scores?: Number[];
-  winner_id?: String;
+  scores?: number[];
+  winner_id?: string;
 }
 
 export interface IRound {
   matches: IMatch[];
 }
 
-// rounds: array of rounds, which is an array of matches, which is a pair of teams
-
 export interface ITournament {
-  id?: String;
+  id?: string;
   start_date_time: Date;
-  is_teen_tournament: Boolean;
+  is_teen_tournament: boolean;
   rounds: IRound[];
 }
 
-export interface IImage extends Document {
+export interface IImage extends mongoose.Document {
   filename: string;
   url: string;
   uploadDate: Date;
