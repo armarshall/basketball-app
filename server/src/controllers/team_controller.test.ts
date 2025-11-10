@@ -4,7 +4,7 @@ import {
   create_team,
   get_all_teams,
   get_team_by_id,
-  update_team_players,
+  // remove update_team_players - it doesn't exist anymore
 } from "./team_controller";
 
 describe("team controller", () => {
@@ -34,7 +34,7 @@ describe("team controller", () => {
   test("get a team by id", async () => {
     const req = {
       params: {
-        id: "68f902e22c24602e73bfb19d" as String,
+        id: "68f902e22c24602e73bfb19d",
       },
     } as any;
 
@@ -55,6 +55,8 @@ describe("team controller", () => {
     expect(mock_json).toHaveBeenCalled();
   });
 
+  // Remove or comment out these tests since update_team_players doesn't exist
+  /*
   test("update team players", async () => {
     const req = {
       body: { player: "abc" }, // player to add
@@ -88,4 +90,5 @@ describe("team controller", () => {
     expect(mock_status).toHaveBeenCalledWith(400);
     expect(mock_json).toHaveBeenCalledWith({ error: "player data missing" });
   });
+  */
 });

@@ -3,18 +3,28 @@ import { get_user_data, logout } from "../services/session_service";
 import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 
+interface User {
+  _id?: string;
+  id?: string;
+  name: string;
+  email: string;
+  isManager?: boolean;
+  managedTeamId?: string;
+  isAdmin?: boolean;
+  type?: "guardian" | "teen";
+}
+
 export default function MenuAppBar() {
-  const [user, setUser] = useState(null);
+  const [user, setUser] = useState<User | null>(null);
   const navigate = useNavigate();
   const location = useLocation();
 
   useEffect(() => {
     const userData = get_user_data();
-
     setUser(userData ? JSON.parse(userData) : null);
   }, [location]);
 
-  const logout_and_redirect = () => {
+  const handleSignOut = () => {
     logout();
     navigate("/");
   };
@@ -22,53 +32,64 @@ export default function MenuAppBar() {
   return (
     <AppBar position="static">
       <Toolbar sx={{ justifyContent: "space-between" }}>
-        <Button href="/" color="secondary" sx={{ textTransform: "none" }}>
-          Home
-        </Button>
-        <Button href="/rules" color="secondary" sx={{ textTransform: "none" }}>
-          Rules
-        </Button>
-        <Button href="/team" color="secondary" sx={{ textTransform: "none" }}>
-          Team
-        </Button>
-        <Button
-          href="/standings"
-          color="secondary"
-          sx={{ textTransform: "none" }}
-        >
-          Standings
-        </Button>
-        <Button href="/about" color="secondary" sx={{ textTransform: "none" }}>
-          About
-        </Button>
-        <Button
-          href="/sponsors"
-          color="secondary"
-          sx={{ textTransform: "none" }}
-        >
-          Sponsors
-        </Button>
-        <Button href="/upload" color="secondary" sx={{ textTransform: "none" }}>
-          Upload
-        </Button>
+        {/* Navigation Links */}
         <div>
-          {!user ? (
+          <Button href="/" color="secondary" sx={{ textTransform: "none" }}>
+            Home
+          </Button>
+          <Button href="/rules" color="secondary" sx={{ textTransform: "none" }}>
+            Rules
+          </Button>
+          <Button href="/team" color="secondary" sx={{ textTransform: "none" }}>
+            Team
+          </Button>
+          <Button href="/standings" color="secondary" sx={{ textTransform: "none" }}>
+            Standings
+          </Button>
+          <Button href="/about" color="secondary" sx={{ textTransform: "none" }}>
+            About
+          </Button>
+          <Button href="/sponsors" color="secondary" sx={{ textTransform: "none" }}>
+            Sponsors
+          </Button>
+          <Button href="/upload" color="secondary" sx={{ textTransform: "none" }}>
+            Upload
+          </Button>
+          {/* Manage Team Link - Only show if user is a manager */}
+          {user?.isManager && (
+            <Button href="/manageteam" color="secondary" sx={{ textTransform: "none" }}>
+              Manage Team
+            </Button>
+          )}
+        </div>
+
+        {/* Auth Buttons */}
+        <div>
+          {user ? (
+            // Show when user is logged in
             <>
-              <Button href="/signup" variant="outlined" color="secondary">
+              <Button 
+                color="secondary" 
+                sx={{ textTransform: "none", mr: 1 }}
+              >
+                Hello, {user.name}
+              </Button>
+              <Button 
+                variant="outlined" 
+                color="secondary"
+                onClick={handleSignOut}
+              >
+                Sign Out
+              </Button>
+            </>
+          ) : (
+            // Show when user is logged out
+            <>
+              <Button href="/signup" variant="outlined" color="secondary" sx={{ mr: 1 }}>
                 Sign Up
               </Button>
               <Button href="/login" variant="outlined" color="secondary">
                 Log In
-              </Button>
-            </>
-          ) : (
-            <>
-              <Button
-                onClick={logout_and_redirect}
-                variant="outlined"
-                color="secondary"
-              >
-                Sign Out
               </Button>
             </>
           )}

@@ -10,21 +10,20 @@ import childRouter from "./routes/child_router";
 import tournamentRouter from "./routes/tournament_router";
 import imageRouter from "./routes/imageRoutes";
 import rulesRouter from "./routes/rules_router";
-// import connectDB from "./database";
 
 const app = express();
 app.use(cors());
 app.use(express.json());
 
-// connectDB.connect(process.env.MONGODB_URI as string);
-
 const PORT = 3000;
 
+// Health check endpoint
 app.get("/ping", (_req, res) => {
   console.log("someone pinged here");
   res.send("pong");
 });
 
+// Register API routes
 app.use("/api/teams", teamRouter);
 app.use("/api/guardians", guardianRouter);
 app.use("/api/teenagers", teenagerRouter);
@@ -33,9 +32,10 @@ app.use("/api/tournaments", tournamentRouter);
 app.use("/api/images", imageRouter);
 app.use("/api/rules", rulesRouter);
 
-// Serve uploaded files
+// Serve uploaded files statically
 app.use("/uploads", express.static("uploads"));
 
+// Start server
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}/`);
 });
