@@ -161,5 +161,3 @@ describe("tournament controller", () => {
     expect(mock_json).toHaveBeenCalled();
   });
 });
-
-

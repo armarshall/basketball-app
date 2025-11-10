@@ -1,5 +1,5 @@
 import mongoose from "../database";
-import { ITeenager } from "../types";
+import { GameStats, ITeenager } from "../types";
 import { hashPassword } from "../services/hashing";
 
 const teenagerSchema = new mongoose.Schema<ITeenager>({
@@ -9,6 +9,7 @@ const teenagerSchema = new mongoose.Schema<ITeenager>({
   email: { type: String, required: true, unique: true },
   password: { type: String, required: true },
   teamId: { type: String, required: false }, // Optional - for teenagers assigned to teams
+  game_stats: Array<GameStats>,
 });
 
 teenagerSchema.set("toJSON", {

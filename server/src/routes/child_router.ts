@@ -1,5 +1,10 @@
 import express from "express";
 import Child from "../models/children";
+import {
+  add_child_stats,
+  get_child_stats,
+  update_child_stats,
+} from "../controllers/child_controller";
 
 const router = express.Router();
 
@@ -62,5 +67,11 @@ router.post("/", (req, res) => {
     return res.json(savedChild);
   });
 });
+
+router.get("/stats/:id", get_child_stats);
+
+router.post("/stats/:id", add_child_stats);
+
+router.patch("/stats/:id", update_child_stats);
 
 export default router;
