@@ -55,7 +55,7 @@ export const check_teenager_hash = async (req: Request, res: Response) => {
 
   const isValidPassword = await validatePassword(
     password,
-    teenager.password as string, // because yelling at me that String instead of string
+    teenager.password as string,
   );
   if (isValidPassword) {
     const user = {
@@ -104,7 +104,8 @@ export const get_teenager_stats = async (req: Request, res: Response) => {
       return res.status(404).json({ error: "teen not found" });
     }
 
-    return res.json(teenager.game_stats);
+    // Fix: Check if game_stats exists
+    return res.json(teenager.game_stats || []);
   } catch (err) {
     console.error(err);
     return res.status(500).json({ error: "internal server error" });
@@ -127,6 +128,11 @@ export const add_teenager_stats = async (req: Request, res: Response) => {
 
     if (!teenager) {
       return res.status(404).json({ error: "teenager not found" });
+    }
+
+    // Fix: Initialize game_stats array if it doesn't exist
+    if (!teenager.game_stats) {
+      teenager.game_stats = [];
     }
 
     teenager.game_stats.push(game_stats);
@@ -164,6 +170,11 @@ export const update_teenager_stats = async (req: Request, res: Response) => {
 
     if (!teenager) {
       return res.status(400).json({ error: "teenager not found" });
+    }
+
+    // Fix: Check if game_stats exists and initialize if needed
+    if (!teenager.game_stats) {
+      return res.status(400).json({ error: "no game stats found for this teenager" });
     }
 
     const index = teenager.game_stats.findIndex((e) => e.game_id === game_id);

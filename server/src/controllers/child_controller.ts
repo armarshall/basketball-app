@@ -74,7 +74,8 @@ export const get_child_stats = async (req: Request, res: Response) => {
       return res.status(404).json({ error: "child not found" });
     }
 
-    return res.json(child.game_stats);
+    // Fix: Check if game_stats exists
+    return res.json(child.game_stats || []);
   } catch (err) {
     console.error(err);
     return res.status(500).json({ error: "internal server error" });
@@ -97,6 +98,11 @@ export const add_child_stats = async (req: Request, res: Response) => {
 
     if (!child) {
       return res.status(404).json({ error: "child not found" });
+    }
+
+    // Fix: Initialize game_stats array if it doesn't exist
+    if (!child.game_stats) {
+      child.game_stats = [];
     }
 
     child.game_stats.push(game_stats);
@@ -136,6 +142,11 @@ export const update_child_stats = async (req: Request, res: Response) => {
 
     if (!child) {
       return res.status(400).json({ error: "child not found" });
+    }
+
+    // Fix: Check if game_stats exists and initialize if needed
+    if (!child.game_stats) {
+      return res.status(400).json({ error: "no game stats found for this child" });
     }
 
     const index = child.game_stats.findIndex((e) => e.game_id === game_id);
