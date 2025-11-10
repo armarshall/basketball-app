@@ -176,9 +176,11 @@ describe("child stats", () => {
     } as any;
 
     const mock_json = jest.fn();
+    const mock_status = jest.fn().mockReturnValue({ json: mock_json });
 
     const res = {
       json: mock_json,
+      status: mock_status,
     } as any;
 
     await get_child_stats(req, res);
@@ -215,9 +217,11 @@ describe("child stats", () => {
     } as any;
 
     const mock_json = jest.fn();
+    const mock_status = jest.fn().mockReturnValue({ json: mock_json });
 
     const res = {
       json: mock_json,
+      status: mock_status,
     } as any;
 
     await add_child_stats(req, res);
@@ -254,9 +258,11 @@ describe("child stats", () => {
     } as any;
 
     const mock_json = jest.fn();
+    const mock_status = jest.fn().mockReturnValue({ json: mock_json });
 
     const res = {
       json: mock_json,
+      status: mock_status,
     } as any;
 
     await update_child_stats(req, res);
