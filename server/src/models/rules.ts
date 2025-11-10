@@ -1,4 +1,5 @@
-import mongoose, { Document, Schema } from "mongoose";
+import mongoose from "../database";
+import { Document, Schema } from "mongoose";
 
 export interface IRules {
   content: string;

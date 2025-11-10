@@ -39,6 +39,10 @@ export const create_team = (req: Request, res: Response) => {
 };
 
 export const update_team_players = async (req: Request, res: Response) => {
+  if (!req.body) {
+    return res.status(400).json({ error: "player data missing" });
+  }
+
   const player = req.body.player;
 
   if (!player) {
