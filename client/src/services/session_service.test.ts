@@ -29,7 +29,7 @@ describe("session_service integration tests", () => {
     // false indicates failure
     expect(result).toBe(false);
 
-    expect(sessionStorage.getItem("user")).toBeNull();
+    expect(get_user_data()).toBeNull();
   });
 
   test("logout should remove user from session storage", async () => {
