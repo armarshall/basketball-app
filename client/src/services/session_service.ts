@@ -21,3 +21,11 @@ export const login = async (email: string, password: string) => {
   }
   return false;
 };
+
+export const logout = () => {
+  sessionStorage.removeItem("user");
+};
+
+export const get_user_data = () => {
+  return sessionStorage.getItem("user") ?? null;
+};

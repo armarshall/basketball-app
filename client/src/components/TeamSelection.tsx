@@ -25,7 +25,7 @@ export default function TeamSelection() {
     dateOfBirth: "2010-05-15",
     password: "pass_hash",
     email: "test@te.com",
-    id: "dd",
+    id: "68fae285c475c441b39bf744",
   };
 
   return (
@@ -51,7 +51,7 @@ export default function TeamSelection() {
           <span style={{ fontWeight: "bold", minWidth: "100px" }}>
             {team.name}
           </span>
-          <span style={{ flex: 1 }}>{name} Team info</span>
+          <span style={{ flex: 1 }}> Team info</span>
           <button
             type="button"
             style={{

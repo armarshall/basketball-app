@@ -19,7 +19,7 @@ router.get("/id/:id", get_teenager_by_id);
 
 router.get("/email/:email", get_teenager_by_email);
 
-router.patch("/:id", update_teenager_team);
+router.patch("/id/:id", update_teenager_team);
 
 router.post("/", create_teenager);
 
