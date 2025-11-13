@@ -16,6 +16,7 @@ import ImageUpload from "./pages/ImageUpload";
 import ManageTeam from "./components/ManageTeam";
 import { StatsViewerPage } from "./pages/StatsViewerTestPage";
 import { StatsEditorPage } from "./pages/StatsEditorTestPage";
+import AdminEvents from "./pages/AdminEvents";
 
 function App() {
   return (
@@ -37,6 +38,7 @@ function App() {
         <Route path="/manageteam" element={<ManageTeam />} />
         <Route path="/stats-test" element={<StatsViewerPage />} />
         <Route path="/stats-update" element={<StatsEditorPage />} />
+        <Route path="/admin/events" element={<AdminEvents />} />
       </Routes>
     </BrowserRouter>
   );

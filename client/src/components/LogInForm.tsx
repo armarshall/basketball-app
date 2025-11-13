@@ -29,7 +29,7 @@ export default function LogInForm() {
       return false;
     } else {
       // Check if password matches database hash
-      let logged_in = await login(formData.email, formData.password);
+      const logged_in = await login(formData.email, formData.password);
 
       if (!logged_in) {
         setError("Email or password is incorrect");
