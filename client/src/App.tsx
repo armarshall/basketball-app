@@ -35,7 +35,7 @@ function App() {
         <Route path="/teamcreate" element={<TeamCreation />} />
         <Route path="/sponsors" element={<Sponsors />} />
         <Route path="/upload" element={<ImageUpload />} />
-        <Route path="/manageteam" element={<ManageTeam />} />
+        <Route path="/teams/:teamName" element={<ManageTeam />} />
         <Route path="/stats-test" element={<StatsViewerPage />} />
         <Route path="/stats-update" element={<StatsEditorPage />} />
         <Route path="/admin/events" element={<AdminEvents />} />

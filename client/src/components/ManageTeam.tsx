@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
+import { useParams } from "react-router-dom";
 import { get_user_data } from "../services/session_service";
 
 interface Player {
@@ -17,6 +18,7 @@ interface Team {
 }
 
 export default function ManageTeam() {
+  const { teamName } = useParams<{ teamName: string }>();
   const [team, setTeam] = useState<Team | null>(null);
   const [currentUser, setCurrentUser] = useState<any>(null);
   const [playerEmail, setPlayerEmail] = useState("");
@@ -28,22 +30,16 @@ export default function ManageTeam() {
     const initialize = async () => {
       try {
         const userData = get_user_data();
-        
+
         if (userData) {
           const user = JSON.parse(userData);
           setCurrentUser(user);
-          
-          if (user.managedTeamId) {
+
+          if (teamName) {
             const guardianId = user._id || user.id;
-            
-            if (!guardianId) {
-              setError("No guardian ID found in user object");
-              return;
-            }
-            
-            await fetchTeamData(user.managedTeamId, guardianId);
+            await fetchTeamDataByName(teamName, guardianId);
           } else {
-            setError("You are not managing any team");
+            setError("No team specified");
           }
         } else {
           setError("Please log in first");
@@ -55,14 +51,39 @@ export default function ManageTeam() {
     };
 
     initialize();
-  }, []);
+  }, [teamName]);
 
-  // Fetch team data from API
+  // Fetch team data by name from API
+  const fetchTeamDataByName = async (teamName: string, guardianId: string) => {
+    try {
+      const encodedTeamName = encodeURIComponent(teamName.toLowerCase());
+      const teamRes = await axios.get(
+        `http://localhost:3000/api/teams/by-name/${encodedTeamName}`
+      );
+      const teamData = teamRes.data;
+
+      const res = await axios.get(
+        `http://localhost:3000/api/teams/${teamData._id}/manage`,
+        {
+          params: { guardianId },
+        }
+      );
+      setTeam(res.data);
+    } catch (err: any) {
+      console.error("Error fetching team data:", err);
+      setError(err?.response?.data?.error || "Error loading team data");
+    }
+  };
+
+  // Fetch team data from API (kept for compatibility)
   const fetchTeamData = async (teamId: string, guardianId: string) => {
     try {
-      const res = await axios.get(`http://localhost:3000/api/teams/${teamId}/manage`, {
-        params: { guardianId }
-      });
+      const res = await axios.get(
+        `http://localhost:3000/api/teams/${teamId}/manage`,
+        {
+          params: { guardianId },
+        }
+      );
       setTeam(res.data);
     } catch (err: any) {
       console.error("Error fetching team data:", err);
@@ -82,16 +103,25 @@ export default function ManageTeam() {
       // Try POST first, then PATCH if that fails
       let res;
       try {
-        res = await axios.post(`http://localhost:3000/api/teams/${team._id}/add-player`, {
-          playerEmail: playerEmail.trim(),
-          guardianId: guardianId
-        });
-      } catch (postError: any) {
-        if (postError.response?.status === 404 || postError.response?.status === 405) {
-          res = await axios.patch(`http://localhost:3000/api/teams/${team._id}/add-player`, {
+        res = await axios.post(
+          `http://localhost:3000/api/teams/${team._id}/add-player`,
+          {
             playerEmail: playerEmail.trim(),
-            guardianId: guardianId
-          });
+            guardianId: guardianId,
+          }
+        );
+      } catch (postError: any) {
+        if (
+          postError.response?.status === 404 ||
+          postError.response?.status === 405
+        ) {
+          res = await axios.patch(
+            `http://localhost:3000/api/teams/${team._id}/add-player`,
+            {
+              playerEmail: playerEmail.trim(),
+              guardianId: guardianId,
+            }
+          );
         } else {
           throw postError;
         }
@@ -100,7 +130,7 @@ export default function ManageTeam() {
       alert(res.data.message);
       setTeam(res.data.team);
       setPlayerEmail("");
-      
+
       await fetchTeamData(team._id, guardianId);
     } catch (err: any) {
       console.error("Error adding player:", err);
@@ -114,7 +144,9 @@ export default function ManageTeam() {
   const handleRemovePlayer = async (playerId: string) => {
     if (!team || !currentUser) return;
 
-    if (!confirm("Are you sure you want to remove this player from the team?")) {
+    if (
+      !confirm("Are you sure you want to remove this player from the team?")
+    ) {
       return;
     }
 
@@ -124,15 +156,24 @@ export default function ManageTeam() {
       // Try POST first, then PATCH if that fails
       let res;
       try {
-        res = await axios.post(`http://localhost:3000/api/teams/${team._id}/remove-player`, {
-          playerId: playerId,
-          guardianId: guardianId
-        });
+        res = await axios.post(
+          `http://localhost:3000/api/teams/${team._id}/remove-player`,
+          {
+            playerId: playerId,
+            guardianId: guardianId,
+          }
+        );
       } catch (postError: any) {
-        if (postError.response?.status === 404 || postError.response?.status === 405) {
-          res = await axios.patch(`http://localhost:3000/api/teams/${team._id}/remove-player/${playerId}`, {
-            guardianId: guardianId
-          });
+        if (
+          postError.response?.status === 404 ||
+          postError.response?.status === 405
+        ) {
+          res = await axios.patch(
+            `http://localhost:3000/api/teams/${team._id}/remove-player/${playerId}`,
+            {
+              guardianId: guardianId,
+            }
+          );
         } else {
           throw postError;
         }
@@ -140,7 +181,7 @@ export default function ManageTeam() {
 
       alert(res.data.message);
       setTeam(res.data.team);
-      
+
       await fetchTeamData(team._id, guardianId);
     } catch (err: any) {
       console.error("Error removing player:", err);
@@ -169,32 +210,21 @@ export default function ManageTeam() {
       <div style={{ padding: 20 }}>
         <h2>Error</h2>
         <p>{error}</p>
-        <button 
+        <button
           onClick={() => {
             setError(null);
             window.location.reload();
           }}
-          style={{ marginTop: 10, padding: '10px 20px' }}
+          style={{ marginTop: 10, padding: "10px 20px" }}
         >
           Try Again
         </button>
-        <button 
-          onClick={() => window.location.href = "/teams"}
-          style={{ marginTop: 10, marginLeft: 10, padding: '10px 20px' }}
+        <button
+          onClick={() => (window.location.href = "/teams")}
+          style={{ marginTop: 10, marginLeft: 10, padding: "10px 20px" }}
         >
           Back to Teams
         </button>
-      </div>
-    );
-  }
-
-  // No managed team state
-  if (!currentUser.managedTeamId) {
-    return (
-      <div style={{ padding: 20 }}>
-        <h2>Manager Dashboard</h2>
-        <p>You are not currently managing any team.</p>
-        <p><a href="/teams">Browse teams to become a manager</a></p>
       </div>
     );
   }
@@ -204,22 +234,36 @@ export default function ManageTeam() {
     return (
       <div style={{ padding: 20 }}>
         <h2>Loading team data...</h2>
-        <p>Team ID: {currentUser.managedTeamId}</p>
-        <p>User ID: {currentUser._id || currentUser.id}</p>
+        <p>Team Name: {teamName}</p>
+        <p>User ID: {currentUser?._id || currentUser?.id}</p>
       </div>
     );
   }
 
   return (
     <div style={{ padding: 20, maxWidth: 800, margin: "0 auto" }}>
-      <h2>Manage Team: {team.name}</h2>
-      
       {/* Add Player Form */}
-      <div style={{ marginBottom: 30, padding: 20, border: "1px solid #ddd", borderRadius: 8 }}>
+      <div
+        style={{
+          marginBottom: 30,
+          padding: 20,
+          border: "1px solid #ddd",
+          borderRadius: 8,
+        }}
+      >
         <h3>Add Player to Team</h3>
-        <form onSubmit={handleAddPlayer} style={{ display: "flex", gap: 10, alignItems: "flex-end" }}>
+        <form
+          onSubmit={handleAddPlayer}
+          style={{ display: "flex", gap: 10, alignItems: "flex-end" }}
+        >
           <div style={{ flex: 1 }}>
-            <label style={{ display: "block", marginBottom: 5, fontWeight: "bold" }}>
+            <label
+              style={{
+                display: "block",
+                marginBottom: 5,
+                fontWeight: "bold",
+              }}
+            >
               Player Email:
             </label>
             <input
@@ -227,7 +271,13 @@ export default function ManageTeam() {
               value={playerEmail}
               onChange={(e) => setPlayerEmail(e.target.value)}
               placeholder="Enter player's email address"
-              style={{ width: "100%", padding: "8px 12px", border: "1px solid #ccc", borderRadius: 4, fontSize: 16 }}
+              style={{
+                width: "100%",
+                padding: "8px 12px",
+                border: "1px solid #ccc",
+                borderRadius: 4,
+                fontSize: 16,
+              }}
               required
             />
           </div>
@@ -241,7 +291,7 @@ export default function ManageTeam() {
               border: "none",
               borderRadius: 4,
               cursor: loading ? "not-allowed" : "pointer",
-              fontSize: 16
+              fontSize: 16,
             }}
           >
             {loading ? "Adding..." : "Add Player"}
@@ -268,13 +318,19 @@ export default function ManageTeam() {
                   padding: 15,
                   border: "1px solid #ddd",
                   borderRadius: 8,
-                  backgroundColor: "#f9f9f9"
+                  backgroundColor: "#f9f9f9",
                 }}
               >
                 <div>
-                  <div style={{ fontWeight: "bold", fontSize: 16 }}>{player.name}</div>
-                  <div style={{ color: "#666", fontSize: 14 }}>{player.email}</div>
-                  <div style={{ color: "#999", fontSize: 12 }}>ID: {player._id}</div>
+                  <div style={{ fontWeight: "bold", fontSize: 16 }}>
+                    {player.name}
+                  </div>
+                  <div style={{ color: "#666", fontSize: 14 }}>
+                    {player.email}
+                  </div>
+                  <div style={{ color: "#999", fontSize: 12 }}>
+                    ID: {player._id}
+                  </div>
                 </div>
                 <button
                   onClick={() => handleRemovePlayer(player._id)}
@@ -285,7 +341,7 @@ export default function ManageTeam() {
                     border: "none",
                     borderRadius: 4,
                     cursor: "pointer",
-                    fontSize: 14
+                    fontSize: 14,
                   }}
                 >
                   Remove

@@ -8,6 +8,7 @@ import {
   join_team_as_manager,
   leave_team_as_manager,
   get_team_by_id,
+  get_team_by_name,
   create_team,
   get_team_players,
   get_teams_with_managers,
@@ -21,6 +22,7 @@ const router = Router();
 
 // Basic routes
 router.get('/', get_all_teams);
+router.get('/by-name/:name', get_team_by_name);
 router.get('/:id', get_team_by_id);
 router.post('/', create_team);
 
