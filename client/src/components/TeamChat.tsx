@@ -22,13 +22,7 @@ export default function TeamChat({ teamId, userId, userType }: TeamChatProps) {
   const [newMessage, setNewMessage] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const messagesEndRef = useRef<HTMLDivElement>(null);
   const pollIntervalRef = useRef<number | null>(null);
-
-  // Scroll to bottom of messages
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  };
 
   // Fetch messages from the server
   const fetchMessages = async () => {
@@ -63,7 +57,6 @@ export default function TeamChat({ teamId, userId, userType }: TeamChatProps) {
       });
       setNewMessage("");
       await fetchMessages();
-      scrollToBottom();
     } catch (err: any) {
       console.error("Error sending message:", err);
       alert(err?.response?.data?.error || "Error sending message");
@@ -104,11 +97,6 @@ export default function TeamChat({ teamId, userId, userType }: TeamChatProps) {
       }
     };
   }, [teamId, userId, userType]);
-
-  // Scroll to bottom when messages change
-  useEffect(() => {
-    scrollToBottom();
-  }, [messages]);
 
   if (error) {
     return (
@@ -204,7 +192,6 @@ export default function TeamChat({ teamId, userId, userType }: TeamChatProps) {
                 </div>
               );
             })}
-            <div ref={messagesEndRef} />
           </div>
         )}
       </div>

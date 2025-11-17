@@ -78,15 +78,15 @@ export default function TeamPage() {
     }
 
     // Check if user is a player on the team
-    if ((userType === "teen" || userType === "teenager") && user.teamId) {
-      const isPlayer =
-        user.teamId === teamData._id ||
-        teamData.players.some((p) => p._id === userId);
+    if (userType === "teen" || userType === "teenager") {
+      const isPlayer = teamData.players.some((p) => p._id === userId);
+
       if (isPlayer) {
         setIsTeamMember(true);
         return true;
       }
     }
+
     return false;
   };
 

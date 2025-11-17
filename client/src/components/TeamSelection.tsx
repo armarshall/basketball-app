@@ -190,39 +190,6 @@ export default function TeamSelection() {
   const isOnAnyTeam =
     currentUser && currentUser.type === "teen" ? !!currentUser.teamId : false;
 
-  // Check if user can join this team
-  const canJoinTeam = (team: Team) => {
-    if (!currentUser) return false;
-
-    if (currentUser.type === "teen") {
-      if (isOnAnyTeam) return false;
-      if (isOnTeam(team)) return false;
-      return true;
-    } else {
-      if (team.managerId) return false;
-      if (isManagingAnyTeam) return false;
-      return true;
-    }
-  };
-
-  // Get button text based on user status
-  const getButtonText = (team: Team) => {
-    if (!currentUser) return "Sign In to Join";
-
-    const isLoading = loading[team._id];
-    if (isLoading) return "Joining...";
-
-    if (currentUser.type === "teen") {
-      if (isOnAnyTeam) return "Already on a Team";
-      if (isOnTeam(team)) return "Already on Team";
-      return "Join as Player";
-    } else {
-      if (isManagingAnyTeam) return "Managing Another Team";
-      if (team.managerId) return "Already Managed";
-      return "Join as Manager";
-    }
-  };
-
   return (
     <div
       style={{
@@ -297,7 +264,6 @@ export default function TeamSelection() {
         const isPlayer = isOnTeam(team);
         const hasManager = !!team.managerId;
         const isLoading = loading[team._id];
-        const canJoin = canJoinTeam(team);
 
         return (
           <div
@@ -354,7 +320,14 @@ export default function TeamSelection() {
               </div>
             </div>
 
-            <div style={{ display: "flex", flexDirection: "column", gap: 10, minWidth: 200 }}>
+            <div
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                gap: 10,
+                minWidth: 200,
+              }}
+            >
               {/* View Team button - always shown */}
               <button
                 onClick={() =>

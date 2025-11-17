@@ -473,41 +473,24 @@ export const join_team_as_player = async (
   }
 };
 
-// Get team details with players
+// Get team details with players (accessible to all users)
 export const get_team_with_players = async (
   req: Request,
   res: Response
 ): Promise<void> => {
   try {
     const { teamId } = req.params;
-    const { guardianId } = req.query;
 
-    if (!guardianId) {
-      res
-        .status(400)
-        .json({ error: "guardianId is required as a query parameter" });
-      return;
-    }
-
-    const team = await Team.findById(teamId).populate("players");
+    const team = await Team.findById(teamId)
+      .populate("players")
+      .populate("managerId");
 
     if (!team) {
       res.status(404).json({ error: "Team not found" });
       return;
     }
 
-    if (team.managerId?.toString() !== guardianId) {
-      res.status(403).json({
-        error: "You are not the manager of this team",
-      });
-      return;
-    }
-
-    const teamWithManager = await Team.findById(teamId)
-      .populate("players")
-      .populate("managerId");
-
-    res.json(teamWithManager);
+    res.json(team);
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: "Internal server error" });
