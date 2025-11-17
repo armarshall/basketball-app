@@ -11,7 +11,9 @@ import {
   create_team,
   get_team_players,
   get_teams_with_managers,
-  get_guardian_team
+  get_guardian_team,
+  get_team_settings,
+  update_team_settings
 } from '../controllers/team_controller';
 import { verifyManager } from '../middleware/verifyManager';
 
@@ -53,6 +55,8 @@ router.post('/:teamId/remove-player', verifyManager, remove_player_from_team);
 router.patch('/:teamId/add-player', add_player_to_team);
 router.patch('/:teamId/remove-player/:playerId', remove_player_from_team);
 router.get('/:teamId/manage', get_team_with_players);
+router.get('/:teamId/settings', verifyManager, get_team_settings);
+router.patch('/:teamId/settings', verifyManager, update_team_settings);
 
 
 export default router;

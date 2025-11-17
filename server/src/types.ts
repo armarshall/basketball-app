@@ -1,26 +1,5 @@
 import mongoose from "mongoose";
 
-export interface Statline {
-  points: number;
-  rebounds: number;
-  assists: number;
-  blocks: number;
-  steals: number;
-  turnovers: number;
-  field_goals_made: number;
-  field_goals_attempted: number;
-  three_pointers_made: number;
-  three_pointers_attempted: number;
-  personal_fouls: number;
-  minutes: number;
-}
-
-export interface GameStats {
-  date: Date;
-  game_id: String;
-  statline: Statline; // decided to break this up for readability, also easier assignment
-}
-
 export interface ITeam {
   _id?: mongoose.Types.ObjectId;
   id?: string;
@@ -28,6 +7,21 @@ export interface ITeam {
   players: mongoose.Types.ObjectId[];
   is_teen_team: boolean;
   managerId?: mongoose.Types.ObjectId | null;
+  teamSettings?: TeamSettings;
+}
+
+export interface TeamSettings {
+  jerseyColor: string;
+  primaryColor: string;
+  secondaryColor: string;
+  practiceDays: string[];
+  practiceTime: string;
+  maxPlayers: number;
+  seasonStart: Date;
+  seasonEnd: Date;
+  contactEmail: string;
+  contactPhone: string;
+  teamImage: string;
 }
 
 export interface IGuardian {
@@ -40,7 +34,6 @@ export interface IGuardian {
   childId?: string;
   isManager?: boolean;
   managedTeamId?: mongoose.Types.ObjectId | null;
-  isAdmin?: boolean;
 }
 
 export interface ITeenager {
@@ -51,7 +44,6 @@ export interface ITeenager {
   email: string;
   password: string;
   teamId?: mongoose.Types.ObjectId | null;
-  game_stats?: GameStats[];
 }
 
 export interface IChild {
@@ -60,7 +52,6 @@ export interface IChild {
   dateOfBirth: Date;
   guardianId: string;
   teamId?: string;
-  game_stats?: GameStats[];
 }
 
 export interface IMatch {

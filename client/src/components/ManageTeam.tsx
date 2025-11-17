@@ -179,7 +179,7 @@ export default function ManageTeam() {
           Try Again
         </button>
         <button 
-          onClick={() => window.location.href = "/teams"}
+          onClick={() => window.location.href = "/team"}
           style={{ marginTop: 10, marginLeft: 10, padding: '10px 20px' }}
         >
           Back to Teams
@@ -194,7 +194,7 @@ export default function ManageTeam() {
       <div style={{ padding: 20 }}>
         <h2>Manager Dashboard</h2>
         <p>You are not currently managing any team.</p>
-        <p><a href="/teams">Browse teams to become a manager</a></p>
+        <p><a href="/team">Browse teams to become a manager</a></p>
       </div>
     );
   }
@@ -212,8 +212,26 @@ export default function ManageTeam() {
 
   return (
     <div style={{ padding: 20, maxWidth: 800, margin: "0 auto" }}>
-      <h2>Manage Team: {team.name}</h2>
+      <h2>Manage Team: {team?.name || "Loading..."}</h2>
       
+      {/* Team Settings Button - Only show when team is loaded */}
+      {team && (
+        <button
+          onClick={() => window.location.href = "/team-settings"}
+          style={{
+            padding: "10px 20px",
+            backgroundColor: "#007bff",
+            color: "white",
+            border: "none",
+            borderRadius: 4,
+            cursor: "pointer",
+            marginBottom: 20
+          }}
+        >
+          Team Settings
+        </button>
+      )}
+
       {/* Add Player Form */}
       <div style={{ marginBottom: 30, padding: 20, border: "1px solid #ddd", borderRadius: 8 }}>
         <h3>Add Player to Team</h3>

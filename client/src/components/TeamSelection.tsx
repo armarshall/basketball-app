@@ -8,6 +8,9 @@ interface Team {
   players: string[];
   is_teen_team: boolean;
   managerId?: string;
+  teamSettings?: {
+    teamImage?: string;
+  };
 }
 
 interface User {
@@ -249,19 +252,52 @@ export default function TeamSelection() {
             backgroundColor: isManager ? "#f0f8ff" : isPlayer ? "#f0fff0" : "white",
             gap: 20
           }}>
-            <div style={{ flex: 1 }}>
-              <span style={{ fontWeight: "bold", fontSize: 18, display: "block", marginBottom: 8 }}>
-                {team.name}
-              </span>
-              <div style={{ fontSize: 14, color: "#666" }}>
-                <div>Players: {(team.players && team.players.length) || 0}</div>
-                <div>Type: {team.is_teen_team ? "Teen Team" : "Children Team"}</div>
-                <div>Manager: {hasManager ? (isManager ? "You" : "A Guardian") : "None - Available"}</div>
-                {isManager && <div style={{ color: "green", fontWeight: "bold" }}>You manage this team</div>}
-                {isPlayer && <div style={{ color: "blue", fontWeight: "bold" }}>You play on this team</div>}
+            {/* Team Info with Image */}
+            <div style={{ display: "flex", alignItems: "center", gap: 15, flex: 1 }}>
+              {/* Team Image - Clickable */}
+              {team.teamSettings?.teamImage && (
+                <img 
+                  src={`http://localhost:3000${team.teamSettings.teamImage}`}
+                  alt={team.name}
+                  style={{
+                    width: "80px",
+                    height: "80px",
+                    borderRadius: "8px",
+                    objectFit: "cover",
+                    border: "2px solid #ddd",
+                    cursor: "pointer"
+                  }}
+                  onClick={() => window.location.href = `/team/${team._id}`}
+                />
+              )}
+              {/* Team Details */}
+              <div style={{ flex: 1 }}>
+                {/* Clickable Team Name */}
+                <span 
+                  style={{ 
+                    fontWeight: "bold", 
+                    fontSize: 18, 
+                    display: "block", 
+                    marginBottom: 8,
+                    cursor: "pointer",
+                    color: "#007bff",
+                    textDecoration: "underline"
+                  }}
+                  onClick={() => window.location.href = `/team/${team._id}`}
+                >
+                  {team.name}
+                </span>
+                <div style={{ fontSize: 14, color: "#666" }}>
+                  <div>Players: {(team.players && team.players.length) || 0}</div>
+                  <div>Type: {team.is_teen_team ? "Teen Team" : "Children Team"}</div>
+                  <div>Manager: {hasManager ? (isManager ? "You" : "A Guardian") : "None - Available"}</div>
+                  {isManager && <div style={{ color: "green", fontWeight: "bold" }}>You manage this team</div>}
+                  {isPlayer && <div style={{ color: "blue", fontWeight: "bold" }}>You play on this team</div>}
+                </div>
               </div>
             </div>
 
+            {/* Action Buttons */}
             <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
               {isManager ? (
                 <>
@@ -297,18 +333,34 @@ export default function TeamSelection() {
                   </button>
                 </>
               ) : isPlayer ? (
-                <button disabled style={{
-                  padding: "10px 20px",
-                  fontSize: 16,
-                  backgroundColor: "#6c757d",
-                  color: "white",
-                  border: "none",
-                  borderRadius: 4,
-                  cursor: "not-allowed",
-                  opacity: 0.6
-                }}>
-                  Already on Team
-                </button>
+                <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                  <button disabled style={{
+                    padding: "10px 20px",
+                    fontSize: 16,
+                    backgroundColor: "#6c757d",
+                    color: "white",
+                    border: "none",
+                    borderRadius: 4,
+                    cursor: "not-allowed",
+                    opacity: 0.6
+                  }}>
+                    Already on Team
+                  </button>
+                  <button
+                    onClick={() => window.location.href = `/team/${team._id}`}
+                    style={{
+                      padding: "10px 20px",
+                      fontSize: 14,
+                      backgroundColor: "#17a2b8",
+                      color: "white",
+                      border: "none",
+                      borderRadius: 4,
+                      cursor: "pointer"
+                    }}
+                  >
+                    View Team Details
+                  </button>
+                </div>
               ) : (
                 <button
                   onClick={() => currentUser?.type === "teen" ? handleJoinAsPlayer(team._id) : handleJoinAsManager(team._id)}

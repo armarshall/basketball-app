@@ -6,7 +6,7 @@ import Guardian from "../models/guardians";
 // Get all teams
 export const get_all_teams = async (_req: Request, res: Response): Promise<void> => {
   try {
-    const teams = await Team.find({});
+    const teams = await Team.find({}).populate("managerId");
     res.json(teams);
   } catch (error) {
     console.error(error);
@@ -446,6 +446,75 @@ export const get_my_managed_teams = async (req: Request, res: Response): Promise
 
     const teams = await Team.find({ managerId: guardianId });
     res.json(teams);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};
+export const get_team_settings = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { teamId } = req.params;
+    const { guardianId } = req.query;
+
+    if (!guardianId) {
+      res.status(400).json({ error: "guardianId is required" });
+      return;
+    }
+
+    const team = await Team.findById(teamId);
+    if (!team) {
+      res.status(404).json({ error: "Team not found" });
+      return;
+    }
+
+    // Verify the user is the manager
+    if (team.managerId?.toString() !== guardianId) {
+      res.status(403).json({ error: "You are not the manager of this team" });
+      return;
+    }
+
+    res.json(team.teamSettings || {});
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};
+
+// Update team settings
+export const update_team_settings = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { teamId } = req.params;
+    const { settings, guardianId } = req.body;
+
+    if (!settings || !guardianId) {
+      res.status(400).json({ error: "settings and guardianId are required" });
+      return;
+    }
+
+    const team = await Team.findById(teamId);
+    if (!team) {
+      res.status(404).json({ error: "Team not found" });
+      return;
+    }
+
+    // Verify the user is the manager
+    if (team.managerId?.toString() !== guardianId) {
+      res.status(403).json({ error: "You are not the manager of this team" });
+      return;
+    }
+
+    // Update team settings
+    team.teamSettings = {
+      ...team.teamSettings,
+      ...settings
+    };
+
+    await team.save();
+
+    res.json({ 
+      message: "Team settings updated successfully!", 
+      teamSettings: team.teamSettings 
+    });
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: "Internal server error" });
