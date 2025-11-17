@@ -180,7 +180,10 @@ export default function TeamSelection() {
   // Check if user manages any team
   const isManagingAnyTeam =
     currentUser && currentUser.type === "guardian"
-      ? !!currentUser.isManager || !!currentUser.managedTeamId
+      ? teams.some((t) => {
+          const userId = currentUser._id || currentUser.id;
+          return t.managerId === userId;
+        })
       : false;
 
   // Check if user is on any team
@@ -351,80 +354,90 @@ export default function TeamSelection() {
               </div>
             </div>
 
-            <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-              {isManager ? (
-                <>
+            <div style={{ display: "flex", flexDirection: "column", gap: 10, minWidth: 200 }}>
+              {/* View Team button - always shown */}
+              <button
+                onClick={() =>
+                  (window.location.href = `/teams/${encodeURIComponent(
+                    team.name.toLowerCase()
+                  )}`)
+                }
+                style={{
+                  padding: "10px 20px",
+                  fontSize: 16,
+                  backgroundColor: "#007bff",
+                  color: "white",
+                  border: "none",
+                  borderRadius: 4,
+                  cursor: "pointer",
+                  width: "100%",
+                }}
+              >
+                View Team
+              </button>
+
+              {/* Leave as Manager button - only for managers */}
+              {isManager && (
+                <button
+                  onClick={() => handleLeaveAsManager(team._id)}
+                  disabled={isLoading}
+                  style={{
+                    padding: "10px 20px",
+                    fontSize: 16,
+                    backgroundColor: "#dc3545",
+                    color: "white",
+                    border: "none",
+                    borderRadius: 4,
+                    cursor: isLoading ? "not-allowed" : "pointer",
+                    opacity: isLoading ? 0.6 : 1,
+                    width: "100%",
+                  }}
+                >
+                  {isLoading ? "Leaving..." : "Leave as Manager"}
+                </button>
+              )}
+
+              {/* Join as Manager button - only for guardians not managing any team */}
+              {currentUser?.type === "guardian" &&
+                !isManagingAnyTeam &&
+                !hasManager && (
                   <button
-                    onClick={() => handleLeaveAsManager(team._id)}
+                    onClick={() => handleJoinAsManager(team._id)}
                     disabled={isLoading}
                     style={{
                       padding: "10px 20px",
                       fontSize: 16,
-                      backgroundColor: "#dc3545",
+                      backgroundColor: "#28a745",
                       color: "white",
                       border: "none",
                       borderRadius: 4,
                       cursor: isLoading ? "not-allowed" : "pointer",
                       opacity: isLoading ? 0.6 : 1,
+                      width: "100%",
                     }}
                   >
-                    {isLoading ? "Leaving..." : "Leave as Manager"}
+                    {isLoading ? "Joining..." : "Join as Manager"}
                   </button>
-                  <button
-                    onClick={() =>
-                      (window.location.href = `/teams/${encodeURIComponent(
-                        team.name.toLowerCase()
-                      )}`)
-                    }
-                    style={{
-                      padding: "10px 20px",
-                      fontSize: 16,
-                      backgroundColor: "#007bff",
-                      color: "white",
-                      border: "none",
-                      borderRadius: 4,
-                      cursor: "pointer",
-                    }}
-                  >
-                    View Team
-                  </button>
-                </>
-              ) : isPlayer ? (
+                )}
+
+              {/* Join as Player button - only for teens not on any team */}
+              {currentUser?.type === "teen" && !isOnAnyTeam && !isPlayer && (
                 <button
-                  disabled
+                  onClick={() => handleJoinAsPlayer(team._id)}
+                  disabled={isLoading}
                   style={{
                     padding: "10px 20px",
                     fontSize: 16,
-                    backgroundColor: "#6c757d",
+                    backgroundColor: "#28a745",
                     color: "white",
                     border: "none",
                     borderRadius: 4,
-                    cursor: "not-allowed",
-                    opacity: 0.6,
+                    cursor: isLoading ? "not-allowed" : "pointer",
+                    opacity: isLoading ? 0.6 : 1,
+                    width: "100%",
                   }}
                 >
-                  Already on Team
-                </button>
-              ) : (
-                <button
-                  onClick={() =>
-                    currentUser?.type === "teen"
-                      ? handleJoinAsPlayer(team._id)
-                      : handleJoinAsManager(team._id)
-                  }
-                  disabled={!canJoin || isLoading}
-                  style={{
-                    padding: "10px 20px",
-                    fontSize: 16,
-                    backgroundColor: canJoin ? "#28a745" : "#6c757d",
-                    color: "white",
-                    border: "none",
-                    borderRadius: 4,
-                    cursor: canJoin ? "pointer" : "not-allowed",
-                    opacity: canJoin && !isLoading ? 1 : 0.6,
-                  }}
-                >
-                  {getButtonText(team)}
+                  {isLoading ? "Joining..." : "Join as Player"}
                 </button>
               )}
             </div>
