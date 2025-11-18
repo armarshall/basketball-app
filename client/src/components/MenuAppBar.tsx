@@ -1,4 +1,4 @@
-import { AppBar, Button, Toolbar } from "@mui/material";
+import { AppBar, Button, Toolbar, Typography } from "@mui/material";
 import { get_user_data, logout } from "../services/session_service";
 import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
@@ -37,30 +37,44 @@ export default function MenuAppBar() {
           <Button href="/" color="secondary" sx={{ textTransform: "none" }}>
             Home
           </Button>
-          <Button href="/rules" color="secondary" sx={{ textTransform: "none" }}>
+          <Button
+            href="/rules"
+            color="secondary"
+            sx={{ textTransform: "none" }}
+          >
             Rules
           </Button>
           <Button href="/team" color="secondary" sx={{ textTransform: "none" }}>
             Team
           </Button>
-          <Button href="/standings" color="secondary" sx={{ textTransform: "none" }}>
+          <Button
+            href="/standings"
+            color="secondary"
+            sx={{ textTransform: "none" }}
+          >
             Standings
           </Button>
-          <Button href="/about" color="secondary" sx={{ textTransform: "none" }}>
+          <Button
+            href="/about"
+            color="secondary"
+            sx={{ textTransform: "none" }}
+          >
             About
           </Button>
-          <Button href="/sponsors" color="secondary" sx={{ textTransform: "none" }}>
+          <Button
+            href="/sponsors"
+            color="secondary"
+            sx={{ textTransform: "none" }}
+          >
             Sponsors
           </Button>
-          <Button href="/upload" color="secondary" sx={{ textTransform: "none" }}>
+          <Button
+            href="/upload"
+            color="secondary"
+            sx={{ textTransform: "none" }}
+          >
             Upload
           </Button>
-          {/* Manage Team Link - Only show if user is a manager */}
-          {user?.isManager && (
-            <Button href="/manageteam" color="secondary" sx={{ textTransform: "none" }}>
-              Manage Team
-            </Button>
-          )}
         </div>
 
         {/* Auth Buttons */}
@@ -68,14 +82,21 @@ export default function MenuAppBar() {
           {user ? (
             // Show when user is logged in
             <>
-              <Button 
-                color="secondary" 
-                sx={{ textTransform: "none", mr: 1 }}
+              <Typography
+                color="secondary"
+                sx={{
+                  textTransform: "none",
+                  mr: 3,
+                  display: "inline-block",
+                  alignSelf: "center",
+                  fontWeight: 500,
+                  fontSize: "0.875rem",
+                }}
               >
                 Hello, {user.name}
-              </Button>
-              <Button 
-                variant="outlined" 
+              </Typography>
+              <Button
+                variant="outlined"
                 color="secondary"
                 onClick={handleSignOut}
               >
@@ -85,7 +106,12 @@ export default function MenuAppBar() {
           ) : (
             // Show when user is logged out
             <>
-              <Button href="/signup" variant="outlined" color="secondary" sx={{ mr: 1 }}>
+              <Button
+                href="/signup"
+                variant="outlined"
+                color="secondary"
+                sx={{ mr: 1 }}
+              >
                 Sign Up
               </Button>
               <Button href="/login" variant="outlined" color="secondary">
