@@ -92,3 +92,14 @@ export interface IImage extends mongoose.Document {
   url: string;
   uploadDate: Date;
 }
+
+export interface IMessage {
+  _id?: mongoose.Types.ObjectId;
+  id?: string;
+  teamId: mongoose.Types.ObjectId;
+  senderId: string;
+  senderType: "Teenager" | "Guardian";
+  content: string;
+  senderName: string;
+  timestamp: Date;
+}

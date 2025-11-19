@@ -20,7 +20,7 @@ export const get_all_teams = async (
 // Get team by ID
 export const get_team_by_id = async (
   req: Request,
-  res: Response,
+  res: Response
 ): Promise<void> => {
   try {
     const team = await Team.findById(req.params.id);
@@ -35,12 +35,18 @@ export const get_team_by_id = async (
   }
 };
 
+// Get team by name (case-insensitive)
 export const get_team_by_name = async (
   req: Request,
-  res: Response,
+  res: Response
 ): Promise<void> => {
   try {
-    const team = await Team.findOne({ name: req.params.name });
+    const teamName = decodeURIComponent(req.params.name).toLowerCase();
+    // Use case-insensitive regex search (escape special regex characters)
+    const escapedTeamName = teamName.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    const team = await Team.findOne({
+      name: { $regex: new RegExp(`^${escapedTeamName}$`, "i") },
+    });
     if (!team) {
       res.status(404).json({ error: "Team not found" });
       return;
@@ -55,7 +61,7 @@ export const get_team_by_name = async (
 // Create a new team
 export const create_team = async (
   req: Request,
-  res: Response,
+  res: Response
 ): Promise<void> => {
   try {
     const { name, players, is_teen_team } = req.body;
@@ -149,7 +155,7 @@ const cleanPlayersArray = (players: any): mongoose.Types.ObjectId[] => {
 // Add player to team
 export const add_player_to_team = async (
   req: Request,
-  res: Response,
+  res: Response
 ): Promise<void> => {
   try {
     const { teamId } = req.params;
@@ -217,7 +223,7 @@ export const add_player_to_team = async (
 // Remove player from team
 export const remove_player_from_team = async (
   req: Request,
-  res: Response,
+  res: Response
 ): Promise<void> => {
   try {
     const { teamId } = req.params;
@@ -269,7 +275,7 @@ export const remove_player_from_team = async (
 // Get all players on a team
 export const get_team_players = async (
   req: Request,
-  res: Response,
+  res: Response
 ): Promise<void> => {
   try {
     const { teamId } = req.params;
@@ -290,7 +296,7 @@ export const get_team_players = async (
 // Guardian joins team as manager
 export const join_team_as_manager = async (
   req: Request,
-  res: Response,
+  res: Response
 ): Promise<void> => {
   try {
     const { teamId, guardianId } = req.body;
@@ -346,7 +352,7 @@ export const join_team_as_manager = async (
 // Guardian leaves as manager
 export const leave_team_as_manager = async (
   req: Request,
-  res: Response,
+  res: Response
 ): Promise<void> => {
   try {
     const { teamId, guardianId } = req.body;
@@ -386,7 +392,7 @@ export const leave_team_as_manager = async (
 // Get all teams with manager info
 export const get_teams_with_managers = async (
   _req: Request,
-  res: Response,
+  res: Response
 ): Promise<void> => {
   try {
     const teams = await Team.find({}).populate("managerId");
@@ -400,7 +406,7 @@ export const get_teams_with_managers = async (
 // Get team by guardian ID
 export const get_guardian_team = async (
   req: Request,
-  res: Response,
+  res: Response
 ): Promise<void> => {
   try {
     const { guardianId } = req.params;
@@ -419,7 +425,7 @@ export const get_guardian_team = async (
 // Teenager joins team as player
 export const join_team_as_player = async (
   req: Request,
-  res: Response,
+  res: Response
 ): Promise<void> => {
   try {
     const { teamId, teenagerId } = req.body;
@@ -467,41 +473,24 @@ export const join_team_as_player = async (
   }
 };
 
-// Get team details with players
+// Get team details with players (accessible to all users)
 export const get_team_with_players = async (
   req: Request,
-  res: Response,
+  res: Response
 ): Promise<void> => {
   try {
     const { teamId } = req.params;
-    const { guardianId } = req.query;
 
-    if (!guardianId) {
-      res
-        .status(400)
-        .json({ error: "guardianId is required as a query parameter" });
-      return;
-    }
-
-    const team = await Team.findById(teamId).populate("players");
+    const team = await Team.findById(teamId)
+      .populate("players")
+      .populate("managerId");
 
     if (!team) {
       res.status(404).json({ error: "Team not found" });
       return;
     }
 
-    if (team.managerId?.toString() !== guardianId) {
-      res.status(403).json({
-        error: "You are not the manager of this team",
-      });
-      return;
-    }
-
-    const teamWithManager = await Team.findById(teamId)
-      .populate("players")
-      .populate("managerId");
-
-    res.json(teamWithManager);
+    res.json(team);
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: "Internal server error" });
@@ -511,7 +500,7 @@ export const get_team_with_players = async (
 // Get managed teams for guardian
 export const get_my_managed_teams = async (
   req: Request,
-  res: Response,
+  res: Response
 ): Promise<void> => {
   try {
     const { guardianId } = req.params;
@@ -527,7 +516,7 @@ export const get_my_managed_teams = async (
 // Debug team manager
 export const debug_team_manager = async (
   req: Request,
-  res: Response,
+  res: Response
 ): Promise<void> => {
   try {
     const { teamId } = req.params;

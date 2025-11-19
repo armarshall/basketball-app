@@ -13,7 +13,7 @@ import LogIn from "./pages/LogIn";
 import { TeamCreation } from "./pages/TeamCreation";
 import Sponsors from "./pages/Sponsors";
 import ImageUpload from "./pages/ImageUpload";
-import ManageTeam from "./components/ManageTeam";
+import TeamPage from "./components/TeamPage";
 import { StatsViewerPage } from "./pages/StatsViewerTestPage";
 import { StatsEditorPage } from "./pages/StatsEditorTestPage";
 import AdminEvents from "./pages/AdminEvents";
@@ -35,7 +35,7 @@ function App() {
         <Route path="/teamcreate" element={<TeamCreation />} />
         <Route path="/sponsors" element={<Sponsors />} />
         <Route path="/upload" element={<ImageUpload />} />
-        <Route path="/manageteam" element={<ManageTeam />} />
+        <Route path="/teams/:teamName" element={<TeamPage />} />
         <Route path="/stats-test" element={<StatsViewerPage />} />
         <Route path="/stats-update" element={<StatsEditorPage />} />
         <Route path="/admin/events" element={<AdminEvents />} />

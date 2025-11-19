@@ -6,7 +6,7 @@ import {
 } from "../controllers/tournament_controller";
 import { get_rounds_by_tournament_id } from "../controllers/round_controller";
 
-const router = Router();
+const router = express.Router();
 
 router.get("/", get_all_tournaments);
 router.get("/:id", get_tournament_by_id);
