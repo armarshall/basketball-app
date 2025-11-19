@@ -4,7 +4,10 @@ import Team from "../models/teams";
 import Guardian from "../models/guardians";
 
 // Get all teams
-export const get_all_teams = async (_req: Request, res: Response): Promise<void> => {
+export const get_all_teams = async (
+  _req: Request,
+  res: Response,
+): Promise<void> => {
   try {
     const teams = await Team.find({});
     res.json(teams);
@@ -15,7 +18,10 @@ export const get_all_teams = async (_req: Request, res: Response): Promise<void>
 };
 
 // Get team by ID
-export const get_team_by_id = async (req: Request, res: Response): Promise<void> => {
+export const get_team_by_id = async (
+  req: Request,
+  res: Response,
+): Promise<void> => {
   try {
     const team = await Team.findById(req.params.id);
     if (!team) {
@@ -29,8 +35,28 @@ export const get_team_by_id = async (req: Request, res: Response): Promise<void>
   }
 };
 
+export const get_team_by_name = async (
+  req: Request,
+  res: Response,
+): Promise<void> => {
+  try {
+    const team = await Team.findOne({ name: req.params.name });
+    if (!team) {
+      res.status(404).json({ error: "Team not found" });
+      return;
+    }
+    res.json(team);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};
+
 // Create a new team
-export const create_team = async (req: Request, res: Response): Promise<void> => {
+export const create_team = async (
+  req: Request,
+  res: Response,
+): Promise<void> => {
   try {
     const { name, players, is_teen_team } = req.body;
 
@@ -58,67 +84,81 @@ const cleanPlayersArray = (players: any): mongoose.Types.ObjectId[] => {
   if (!players) {
     return [];
   }
-  
+
   if (!Array.isArray(players)) {
-    if (typeof players === 'string' && players.includes('[')) {
+    if (typeof players === "string" && players.includes("[")) {
       try {
-        const cleanString = players.replace(/\n/g, '').replace(/'/g, '"');
+        const cleanString = players.replace(/\n/g, "").replace(/'/g, '"');
         const parsedArray = JSON.parse(cleanString);
         const cleanedPlayers: mongoose.Types.ObjectId[] = [];
-        
+
         parsedArray.forEach((item: any) => {
-          if (typeof item === 'string' && mongoose.Types.ObjectId.isValid(item)) {
+          if (
+            typeof item === "string" &&
+            mongoose.Types.ObjectId.isValid(item)
+          ) {
             cleanedPlayers.push(new mongoose.Types.ObjectId(item));
           }
         });
-        
+
         return cleanedPlayers;
       } catch (parseError) {
-        console.log('Could not parse corrupted player data:', players);
+        console.log("Could not parse corrupted player data:", players);
         return [];
       }
     }
-    
-    if (typeof players === 'string' && mongoose.Types.ObjectId.isValid(players)) {
+
+    if (
+      typeof players === "string" &&
+      mongoose.Types.ObjectId.isValid(players)
+    ) {
       return [new mongoose.Types.ObjectId(players)];
     }
-    
+
     return [];
   }
-  
+
   const cleanedPlayers: mongoose.Types.ObjectId[] = [];
-  
-  players.forEach(player => {
-    if (typeof player === 'string' && mongoose.Types.ObjectId.isValid(player)) {
+
+  players.forEach((player) => {
+    if (typeof player === "string" && mongoose.Types.ObjectId.isValid(player)) {
       cleanedPlayers.push(new mongoose.Types.ObjectId(player));
     } else if (player instanceof mongoose.Types.ObjectId) {
       cleanedPlayers.push(player);
-    } else if (typeof player === 'string' && player.includes('[')) {
+    } else if (typeof player === "string" && player.includes("[")) {
       try {
-        const cleanString = player.replace(/\n/g, '').replace(/'/g, '"');
+        const cleanString = player.replace(/\n/g, "").replace(/'/g, '"');
         const parsedArray = JSON.parse(cleanString);
         parsedArray.forEach((item: any) => {
-          if (typeof item === 'string' && mongoose.Types.ObjectId.isValid(item)) {
+          if (
+            typeof item === "string" &&
+            mongoose.Types.ObjectId.isValid(item)
+          ) {
             cleanedPlayers.push(new mongoose.Types.ObjectId(item));
           }
         });
       } catch (parseError) {
-        console.log('Could not parse corrupted player data:', player);
+        console.log("Could not parse corrupted player data:", player);
       }
     }
   });
-  
+
   return cleanedPlayers;
 };
 
 // Add player to team
-export const add_player_to_team = async (req: Request, res: Response): Promise<void> => {
+export const add_player_to_team = async (
+  req: Request,
+  res: Response,
+): Promise<void> => {
   try {
     const { teamId } = req.params;
     const { playerEmail, guardianId } = req.body;
 
     if (!playerEmail || !guardianId) {
-      res.status(400).json({ error: "playerEmail and guardianId are required" });
+      res
+        .status(400)
+        .json({ error: "playerEmail and guardianId are required" });
       return;
     }
 
@@ -148,8 +188,8 @@ export const add_player_to_team = async (req: Request, res: Response): Promise<v
     }
 
     const playerIdString = teenager._id!.toString();
-    const teamPlayerIds = team.players.map(p => p.toString());
-    
+    const teamPlayerIds = team.players.map((p) => p.toString());
+
     if (teamPlayerIds.includes(playerIdString)) {
       res.status(409).json({ error: "Player already in this team" });
       return;
@@ -161,12 +201,12 @@ export const add_player_to_team = async (req: Request, res: Response): Promise<v
     await team.save();
     await teenager.save();
 
-    const updatedTeam = await Team.findById(teamId).populate('players');
+    const updatedTeam = await Team.findById(teamId).populate("players");
 
-    res.json({ 
-      message: "Player added successfully!", 
+    res.json({
+      message: "Player added successfully!",
       team: updatedTeam,
-      addedPlayer: teenager 
+      addedPlayer: teenager,
     });
   } catch (error) {
     console.error(error);
@@ -175,7 +215,10 @@ export const add_player_to_team = async (req: Request, res: Response): Promise<v
 };
 
 // Remove player from team
-export const remove_player_from_team = async (req: Request, res: Response): Promise<void> => {
+export const remove_player_from_team = async (
+  req: Request,
+  res: Response,
+): Promise<void> => {
   try {
     const { teamId } = req.params;
     const { playerId, guardianId } = req.body;
@@ -205,17 +248,17 @@ export const remove_player_from_team = async (req: Request, res: Response): Prom
       return;
     }
 
-    team.players = team.players.filter(p => p.toString() !== playerId);
+    team.players = team.players.filter((p) => p.toString() !== playerId);
     teenager.teamId = null;
 
     await team.save();
     await teenager.save();
 
-    const updatedTeam = await Team.findById(teamId).populate('players');
+    const updatedTeam = await Team.findById(teamId).populate("players");
 
-    res.json({ 
-      message: "Player removed successfully!", 
-      team: updatedTeam
+    res.json({
+      message: "Player removed successfully!",
+      team: updatedTeam,
     });
   } catch (error) {
     console.error(error);
@@ -224,7 +267,10 @@ export const remove_player_from_team = async (req: Request, res: Response): Prom
 };
 
 // Get all players on a team
-export const get_team_players = async (req: Request, res: Response): Promise<void> => {
+export const get_team_players = async (
+  req: Request,
+  res: Response,
+): Promise<void> => {
   try {
     const { teamId } = req.params;
 
@@ -242,7 +288,10 @@ export const get_team_players = async (req: Request, res: Response): Promise<voi
 };
 
 // Guardian joins team as manager
-export const join_team_as_manager = async (req: Request, res: Response): Promise<void> => {
+export const join_team_as_manager = async (
+  req: Request,
+  res: Response,
+): Promise<void> => {
   try {
     const { teamId, guardianId } = req.body;
 
@@ -283,15 +332,22 @@ export const join_team_as_manager = async (req: Request, res: Response): Promise
     await team.save();
     await guardian.save();
 
-    res.json({ message: "Successfully joined team as manager!", team, guardian });
+    res.json({
+      message: "Successfully joined team as manager!",
+      team,
+      guardian,
+    });
   } catch (err) {
-    console.error('Error in join_team_as_manager:', err);
+    console.error("Error in join_team_as_manager:", err);
     res.status(500).json({ error: "Internal server error" });
   }
 };
 
 // Guardian leaves as manager
-export const leave_team_as_manager = async (req: Request, res: Response): Promise<void> => {
+export const leave_team_as_manager = async (
+  req: Request,
+  res: Response,
+): Promise<void> => {
   try {
     const { teamId, guardianId } = req.body;
 
@@ -328,7 +384,10 @@ export const leave_team_as_manager = async (req: Request, res: Response): Promis
 };
 
 // Get all teams with manager info
-export const get_teams_with_managers = async (_req: Request, res: Response): Promise<void> => {
+export const get_teams_with_managers = async (
+  _req: Request,
+  res: Response,
+): Promise<void> => {
   try {
     const teams = await Team.find({}).populate("managerId");
     res.json(teams);
@@ -339,7 +398,10 @@ export const get_teams_with_managers = async (_req: Request, res: Response): Pro
 };
 
 // Get team by guardian ID
-export const get_guardian_team = async (req: Request, res: Response): Promise<void> => {
+export const get_guardian_team = async (
+  req: Request,
+  res: Response,
+): Promise<void> => {
   try {
     const { guardianId } = req.params;
     const team = await Team.findOne({ managerId: guardianId });
@@ -355,7 +417,10 @@ export const get_guardian_team = async (req: Request, res: Response): Promise<vo
 };
 
 // Teenager joins team as player
-export const join_team_as_player = async (req: Request, res: Response): Promise<void> => {
+export const join_team_as_player = async (
+  req: Request,
+  res: Response,
+): Promise<void> => {
   try {
     const { teamId, teenagerId } = req.body;
 
@@ -391,46 +456,50 @@ export const join_team_as_player = async (req: Request, res: Response): Promise<
     teenager.teamId = new mongoose.Types.ObjectId(teamId);
     await teenager.save();
 
-    res.json({ 
+    res.json({
       message: "Successfully joined team!",
       team: updatedTeam,
-      teenager: teenager
+      teenager: teenager,
     });
-
   } catch (err) {
-    console.error('Error in join_team_as_player:', err);
+    console.error("Error in join_team_as_player:", err);
     res.status(500).json({ error: "Internal server error" });
   }
 };
 
 // Get team details with players
-export const get_team_with_players = async (req: Request, res: Response): Promise<void> => {
+export const get_team_with_players = async (
+  req: Request,
+  res: Response,
+): Promise<void> => {
   try {
     const { teamId } = req.params;
     const { guardianId } = req.query;
 
     if (!guardianId) {
-      res.status(400).json({ error: "guardianId is required as a query parameter" });
+      res
+        .status(400)
+        .json({ error: "guardianId is required as a query parameter" });
       return;
     }
 
-    const team = await Team.findById(teamId).populate('players');
-    
+    const team = await Team.findById(teamId).populate("players");
+
     if (!team) {
       res.status(404).json({ error: "Team not found" });
       return;
     }
 
     if (team.managerId?.toString() !== guardianId) {
-      res.status(403).json({ 
-        error: "You are not the manager of this team"
+      res.status(403).json({
+        error: "You are not the manager of this team",
       });
       return;
     }
 
     const teamWithManager = await Team.findById(teamId)
-      .populate('players')
-      .populate('managerId');
+      .populate("players")
+      .populate("managerId");
 
     res.json(teamWithManager);
   } catch (error) {
@@ -440,7 +509,10 @@ export const get_team_with_players = async (req: Request, res: Response): Promis
 };
 
 // Get managed teams for guardian
-export const get_my_managed_teams = async (req: Request, res: Response): Promise<void> => {
+export const get_my_managed_teams = async (
+  req: Request,
+  res: Response,
+): Promise<void> => {
   try {
     const { guardianId } = req.params;
 
@@ -453,10 +525,13 @@ export const get_my_managed_teams = async (req: Request, res: Response): Promise
 };
 
 // Debug team manager
-export const debug_team_manager = async (req: Request, res: Response): Promise<void> => {
+export const debug_team_manager = async (
+  req: Request,
+  res: Response,
+): Promise<void> => {
   try {
     const { teamId } = req.params;
-    
+
     const team = await Team.findById(teamId);
     if (!team) {
       res.status(404).json({ error: "Team not found" });
@@ -467,7 +542,7 @@ export const debug_team_manager = async (req: Request, res: Response): Promise<v
       teamId: team._id,
       teamName: team.name,
       managerId: team.managerId,
-      managerIdString: team.managerId?.toString()
+      managerIdString: team.managerId?.toString(),
     });
   } catch (error) {
     console.error(error);

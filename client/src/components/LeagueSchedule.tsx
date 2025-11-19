@@ -7,17 +7,17 @@ import dayjs from "dayjs";
 import axios from "axios";
 
 export default function LeagueSchedule() {
-  const [tournaments, setTournaments] = useState<any[]>([]);
+  const [matches, setMatches] = useState<any[]>([]);
   const [selectedDate, setSelectedDate] = useState(dayjs());
   const [teams, setTeams] = useState<{ [key: string]: string }>({});
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const res = await axios.get("http://localhost:3000/api/tournaments");
-        setTournaments(res.data);
+        const res = await axios.get("http://localhost:3000/api/matches");
+        setMatches(res.data);
       } catch (error) {
-        console.error("Failed to load tournament data:", error);
+        console.error("Failed to load match data:", error);
       }
     };
     fetchData();
@@ -27,17 +27,18 @@ export default function LeagueSchedule() {
     const fetchAllTeams = async () => {
       try {
         const teamIds = new Set<string>();
-        for (const tournament of tournaments)
-          for (const round of tournament.rounds)
-            for (const match of round.matches)
-              if (match.team_ids)
-                for (const teamId of match.team_ids) teamIds.add(teamId);
+        for (const match of matches) {
+          if (match.team1_id && match.team2_id) {
+            teamIds.add(match.team1_id);
+            teamIds.add(match.team2_id);
+          }
+        }
 
         const teamsMap: { [key: string]: string } = {};
         for (const teamId of teamIds) {
           try {
             const res = await axios.get(
-              `http://localhost:3000/api/teams/${teamId}`
+              `http://localhost:3000/api/teams/${teamId}`,
             );
             teamsMap[teamId] = res.data.name;
           } catch (error) {
@@ -52,35 +53,28 @@ export default function LeagueSchedule() {
       }
     };
 
-    if (tournaments.length > 0) {
+    if (matches.length > 0) {
       fetchAllTeams();
     }
-  }, [tournaments]);
+  }, [matches]);
 
   const eventData = useMemo(() => {
     const eventMap: { [key: string]: any[] } = {};
 
-    for (const tournament of tournaments) {
-      const rounds = tournament.rounds || [];
-      for (const round of rounds) {
-        const matches = round.matches || [];
-        for (const match of matches) {
-          if (!match.start_date_time) continue;
+    for (const match of matches) {
+      if (!match.start_date_time) continue;
 
-          const date = dayjs(match.start_date_time)
-            .add(4, "hour")
-            .format("YYYY-MM-DD");
+      const date = dayjs(match.start_date_time)
+        .add(4, "hour")
+        .format("YYYY-MM-DD");
 
-          if (!eventMap[date]) {
-            eventMap[date] = [];
-          }
-          eventMap[date].push(match);
-        }
+      if (!eventMap[date]) {
+        eventMap[date] = [];
       }
+      eventMap[date].push(match);
     }
-
     return eventMap;
-  }, [tournaments]);
+  }, [matches]);
 
   const eventDates = useMemo(() => {
     return new Set(Object.keys(eventData));
@@ -148,8 +142,7 @@ export default function LeagueSchedule() {
           selectedDateEvents.map((event: any) => (
             <div key={event.id} style={{ marginBottom: "10px" }}>
               <p>
-                {getTeamName(event.team_ids[0])} vs{" "}
-                {getTeamName(event.team_ids[1])}
+                {getTeamName(event.team1_id)} vs {getTeamName(event.team2_id)}
               </p>
               <p>
                 Time:{" "}

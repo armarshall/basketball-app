@@ -64,21 +64,27 @@ export interface IChild {
 }
 
 export interface IMatch {
-  team_ids: string[];
+  id?: string;
+  team1_id: string;
+  team2_id: string;
   start_date_time?: Date;
-  scores?: number[];
+  team1_score?: number[];
+  team2_score?: number[];
   winner_id?: string;
+  round_id: string;
 }
 
 export interface IRound {
-  matches: IMatch[];
+  id?: string;
+  match_ids?: string[];
+  tournament_id: string;
 }
 
 export interface ITournament {
   id?: string;
   start_date_time: Date;
   is_teen_tournament: boolean;
-  rounds: IRound[];
+  round_ids?: string[];
 }
 
 export interface IImage extends mongoose.Document {

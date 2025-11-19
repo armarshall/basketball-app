@@ -10,6 +10,8 @@ import childRouter from "./routes/child_router";
 import tournamentRouter from "./routes/tournament_router";
 import imageRouter from "./routes/imageRoutes";
 import rulesRouter from "./routes/rules_router";
+import roundRouter from "./routes/round_router";
+import matchRouter from "./routes/match_router";
 
 const app = express();
 app.use(cors());
@@ -31,6 +33,8 @@ app.use("/api/children", childRouter);
 app.use("/api/tournaments", tournamentRouter);
 app.use("/api/images", imageRouter);
 app.use("/api/rules", rulesRouter);
+app.use("/api/rounds", roundRouter);
+app.use("/api/matches", matchRouter);
 
 // Serve uploaded files statically
 app.use("/uploads", express.static("uploads"));
