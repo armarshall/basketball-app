@@ -33,6 +33,7 @@ export interface IGuardian {
   password: string;
   childId?: string;
   isManager?: boolean;
+  isAdmin?: boolean; // Add this line if you need admin
   managedTeamId?: mongoose.Types.ObjectId | null;
 }
 
@@ -44,14 +45,29 @@ export interface ITeenager {
   email: string;
   password: string;
   teamId?: mongoose.Types.ObjectId | null;
+  game_stats?: GameStats[]; // Add this line
 }
 
+export interface GameStats {
+  game_id: string;
+  statline: Statline;
+  date: Date;
+}
+export interface Statline {
+  points: number;
+  rebounds: number;
+  assists: number;
+  steals: number;
+  blocks: number;
+  turnovers: number;
+}
 export interface IChild {
   id: string;
   name: string;
   dateOfBirth: Date;
   guardianId: string;
   teamId?: string;
+  game_stats?: GameStats[];
 }
 
 export interface IMatch {

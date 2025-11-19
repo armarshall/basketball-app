@@ -13,11 +13,12 @@ import LogIn from "./pages/LogIn";
 import { TeamCreation } from "./pages/TeamCreation";
 import Sponsors from "./pages/Sponsors";
 import ImageUpload from "./pages/ImageUpload";
-import ManageTeam from "./components/ManageTeam";
 import { StatsViewerPage } from "./pages/StatsViewerTestPage";
 import { StatsEditorPage } from "./pages/StatsEditorTestPage";
 import TeamSettings from "./components/TeamSettings";
 import TeamDetails from "./components/TeamDetails";
+import TeamSelection from "./components/TeamSelection";
+import ManagerProfile from "./components/ManagerProfile";
 
 function App() {
   return (
@@ -36,11 +37,17 @@ function App() {
         <Route path="/teamcreate" element={<TeamCreation />} />
         <Route path="/sponsors" element={<Sponsors />} />
         <Route path="/upload" element={<ImageUpload />} />
-        <Route path="/manageteam" element={<ManageTeam />} />
+        
+        {/* TEAMS ROUTES - Make sure these are correct */}
+        <Route path="/teams" element={<TeamSelection />} />
+        <Route path="/team/:id/settings" element={<TeamSettings />} />
+        <Route path="/manager-profile" element={<ManagerProfile />} />
         <Route path="/stats-test" element={<StatsViewerPage />} />
         <Route path="/stats-update" element={<StatsEditorPage />} />
-        <Route path="/team-settings" element={<TeamSettings />} />
         <Route path="/team/:teamId" element={<TeamDetails />} />
+        
+        {/* Catch-all route for 404 pages */}
+        <Route path="*" element={<div>Page not found</div>} />
       </Routes>
     </BrowserRouter>
   );

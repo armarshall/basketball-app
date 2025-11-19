@@ -1,6 +1,20 @@
 import mongoose from "../database";
-import { GameStats, ITeenager } from "../types";
+import { ITeenager } from "../types";
 import { hashPassword } from "../services/hashing";
+
+// Define the game stats sub-schema
+const gameStatsSchema = new mongoose.Schema({
+  game_id: { type: String, required: true },
+  statline: {
+    points: { type: Number, default: 0 },
+    rebounds: { type: Number, default: 0 },
+    assists: { type: Number, default: 0 },
+    steals: { type: Number, default: 0 },
+    blocks: { type: Number, default: 0 },
+    turnovers: { type: Number, default: 0 }
+  },
+  date: { type: Date, default: Date.now }
+});
 
 const teenagerSchema = new mongoose.Schema<ITeenager>({
   id: { type: String },
@@ -13,10 +27,9 @@ const teenagerSchema = new mongoose.Schema<ITeenager>({
     ref: 'Team',
     required: false 
   },
-  game_stats: Array<GameStats>,
+  game_stats: { type: [gameStatsSchema], default: [] } // Add this line
 });
 
-// Transform output when converting to JSON
 teenagerSchema.set("toJSON", {
   transform: (_document, returnedObject) => {
     returnedObject.id = returnedObject._id.toString();

@@ -27,19 +27,80 @@ export default function TeamSelection() {
   const [teams, setTeams] = useState<Team[]>([]);
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [loading, setLoading] = useState<{ [teamId: string]: boolean }>({});
+  const [refreshing, setRefreshing] = useState(false);
 
-  // Load user data and teams on component mount
+  // Function to get proper image URL
+  const getTeamImageUrl = (teamImage: string | undefined): string => {
+    if (!teamImage) {
+      return 'https://via.placeholder.com/80x80/cccccc/969696?text=No+Image';
+    }
+    
+    if (teamImage.startsWith('http')) {
+      return teamImage;
+    }
+    
+    if (teamImage.startsWith('/uploads/')) {
+      return `http://localhost:3000${teamImage}`;
+    }
+    
+    if (teamImage.includes('team-')) {
+      return `http://localhost:3000/uploads/teams/${teamImage}`;
+    }
+    
+    return 'https://via.placeholder.com/80x80/cccccc/969696?text=No+Image';
+  };
+
+  // Function to refresh team data
+  const refreshTeams = async () => {
+    setRefreshing(true);
+    try {
+      const teamsRes = await axios.get("http://localhost:3000/api/teams");
+      setTeams(teamsRes.data);
+    } catch (err) {
+      console.error("Error refreshing teams:", err);
+    } finally {
+      setRefreshing(false);
+    }
+  };
+
+  // Function to sync user session with backend
+  const syncUserSession = async (userData: any) => {
+    try {
+      // If user thinks they're a manager, verify with backend
+      if (userData.isManager && userData.managedTeamId) {
+        const teamRes = await axios.get(`http://localhost:3000/api/teams/${userData.managedTeamId}`);
+        const team = teamRes.data;
+        
+        // If backend says user is not the manager, update session
+        if (team.managerId !== (userData._id || userData.id)) {
+          const updatedUser = {
+            ...userData,
+            isManager: false,
+            managedTeamId: undefined
+          };
+          sessionStorage.setItem("user", JSON.stringify(updatedUser));
+          setCurrentUser(updatedUser);
+          console.log('🔄 Synced user session: No longer manager');
+        }
+      }
+    } catch (error) {
+      console.error('Error syncing user session:', error);
+    }
+  };
+
   useEffect(() => {
     const fetchData = async () => {
       try {
         const userData = get_user_data();
         if (userData) {
           const parsedUser = JSON.parse(userData);
+          
+          // Sync user session with backend reality
+          await syncUserSession(parsedUser);
           setCurrentUser(parsedUser);
         }
 
-        const teamsRes = await axios.get<Team[]>("http://localhost:3000/api/teams");
-        setTeams(teamsRes.data);
+        await refreshTeams();
       } catch (err) {
         console.error("Error fetching data:", err);
       }
@@ -47,17 +108,22 @@ export default function TeamSelection() {
     fetchData();
   }, []);
 
-  // Handle session changes across browser tabs
   useEffect(() => {
     const handleStorageChange = () => {
       const userData = get_user_data();
-      setCurrentUser(userData ? JSON.parse(userData) : null);
+      if (userData) {
+        const parsedUser = JSON.parse(userData);
+        syncUserSession(parsedUser);
+        setCurrentUser(parsedUser);
+      } else {
+        setCurrentUser(null);
+      }
     };
+    
     window.addEventListener("storage", handleStorageChange);
     return () => window.removeEventListener("storage", handleStorageChange);
   }, []);
 
-  // Join or leave team as manager
   const updateTeamManager = async (url: string, teamId: string) => {
     if (!currentUser) {
       alert("Please log in first.");
@@ -79,20 +145,37 @@ export default function TeamSelection() {
       });
 
       alert(res.data.message);
-      sessionStorage.setItem("user", JSON.stringify({ ...res.data.guardian, type: "guardian" }));
-      setCurrentUser({ ...res.data.guardian, type: "guardian" });
+      
+      // Always update session with response data
+      if (res.data.guardian) {
+        const updatedUser = { ...res.data.guardian, type: "guardian" };
+        sessionStorage.setItem("user", JSON.stringify(updatedUser));
+        setCurrentUser(updatedUser);
+      }
 
-      const teamsRes = await axios.get<Team[]>("http://localhost:3000/api/teams");
-      setTeams(teamsRes.data);
+      // REDIRECT TO MANAGER PROFILE AFTER BECOMING MANAGER
+      if (url.includes("join-as-manager")) {
+        window.location.href = "/manager-profile";
+        return;
+      }
+
+      // Refresh teams data
+      await refreshTeams();
+      
     } catch (err: any) {
       console.error("Error updating team manager:", err);
-      alert(err?.response?.data?.error || err.message);
+      const errorMessage = err?.response?.data?.error || err.message;
+      alert(errorMessage);
+      
+      // If there's a conflict, refresh the data
+      if (errorMessage.includes("already has a manager") || errorMessage.includes("already managing")) {
+        await refreshTeams();
+      }
     } finally {
       setLoading((prev) => ({ ...prev, [teamId]: false }));
     }
   };
 
-  // Join team as player
   const handleJoinAsPlayer = async (teamId: string) => {
     if (!currentUser) {
       alert("Please log in first.");
@@ -128,8 +211,7 @@ export default function TeamSelection() {
         teamId: updatedTeenager.teamId 
       });
 
-      const teamsRes = await axios.get("http://localhost:3000/api/teams");
-      setTeams(teamsRes.data);
+      await refreshTeams();
       
     } catch (err: any) {
       console.error("Error joining team as player:", err);
@@ -145,31 +227,26 @@ export default function TeamSelection() {
   const handleLeaveAsManager = (teamId: string) =>
     updateTeamManager("http://localhost:3000/api/teams/leave-as-manager", teamId);
 
-  // Check if user manages this team
   const isTeamManager = (team: Team) => {
     if (!currentUser) return false;
     const userId = currentUser._id || currentUser.id;
     return team.managerId === userId;
   };
 
-  // Check if user is on this team
   const isOnTeam = (team: Team) => {
     if (!currentUser || !team.players || !Array.isArray(team.players)) return false;
     const userId = currentUser._id || currentUser.id;
     return team.players.includes(userId);
   };
 
-  // Check if user manages any team
   const isManagingAnyTeam = currentUser && currentUser.type === "guardian"
     ? !!currentUser.isManager || !!currentUser.managedTeamId
     : false;
 
-  // Check if user is on any team
   const isOnAnyTeam = currentUser && currentUser.type === "teen"
     ? !!currentUser.teamId
     : false;
 
-  // Check if user can join this team
   const canJoinTeam = (team: Team) => {
     if (!currentUser) return false;
     
@@ -184,7 +261,6 @@ export default function TeamSelection() {
     }
   };
 
-  // Get button text based on user status
   const getButtonText = (team: Team) => {
     if (!currentUser) return "Sign In to Join";
     
@@ -202,9 +278,52 @@ export default function TeamSelection() {
     }
   };
 
+  const handleSignOut = async () => {
+    if (currentUser?.isManager && currentUser.managedTeamId) {
+      if (confirm("Are you sure you want to sign out? This will leave your manager position.")) {
+        try {
+          await axios.post('http://localhost:3000/api/teams/leave-as-manager', {
+            teamId: currentUser.managedTeamId,
+            guardianId: currentUser._id || currentUser.id
+          });
+        } catch (error) {
+          console.error('Error leaving as manager:', error);
+          alert('Error leaving manager position. Please try again.');
+          return;
+        }
+      } else {
+        return; // User canceled
+      }
+    }
+    
+    sessionStorage.removeItem('user');
+    localStorage.removeItem('user');
+    window.location.href = '/login';
+  };
+
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 16, padding: "0 20px", marginTop: 20 }}>
-      {/* Current User Info */}
+      {/* Refresh Button */}
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+        <h2>Available Teams</h2>
+        <button
+          onClick={refreshTeams}
+          disabled={refreshing}
+          style={{
+            padding: "8px 16px",
+            backgroundColor: "#6c757d",
+            color: "white",
+            border: "none",
+            borderRadius: 4,
+            cursor: refreshing ? "not-allowed" : "pointer",
+            opacity: refreshing ? 0.6 : 1,
+            fontSize: "14px"
+          }}
+        >
+          {refreshing ? "Refreshing..." : "Refresh Teams"}
+        </button>
+      </div>
+
       {currentUser ? (
         <div style={{ padding: 16, backgroundColor: "#f5f5f5", borderRadius: 8, marginBottom: 16 }}>
           <h3>Current User</h3>
@@ -214,13 +333,28 @@ export default function TeamSelection() {
           <p>
             <strong>Status:</strong> 
             {currentUser.type === "teen" 
-              ? (isOnAnyTeam ? "Team Player" : "Teen - Not on a Team")
-              : (isManagingAnyTeam ? "Manager of a team" : "Guardian - Available to Manage")
+              ? (currentUser.teamId ? "Team Player" : "Teen - Not on a Team")
+              : (currentUser.isManager ? "Manager of a team" : "Guardian - Available to Manage")
             }
           </p>
           {currentUser.managedTeamId && (
             <p><strong>Managed Team ID:</strong> {currentUser.managedTeamId}</p>
           )}
+          {/* Sign out button */}
+          <button
+            onClick={handleSignOut}
+            style={{
+              padding: "8px 16px",
+              backgroundColor: "#dc3545",
+              color: "white",
+              border: "none",
+              borderRadius: 4,
+              cursor: "pointer",
+              marginTop: 10
+            }}
+          >
+            Sign Out
+          </button>
         </div>
       ) : (
         <div style={{ padding: 16, backgroundColor: "#fff3cd", border: "1px solid #ffeaa7", borderRadius: 8 }}>
@@ -230,8 +364,6 @@ export default function TeamSelection() {
         </div>
       )}
 
-      {/* Teams List */}
-      <h2>Available Teams</h2>
       {teams.length === 0 && <p>No teams available.</p>}
 
       {teams.map((team) => {
@@ -252,27 +384,25 @@ export default function TeamSelection() {
             backgroundColor: isManager ? "#f0f8ff" : isPlayer ? "#f0fff0" : "white",
             gap: 20
           }}>
-            {/* Team Info with Image */}
             <div style={{ display: "flex", alignItems: "center", gap: 15, flex: 1 }}>
-              {/* Team Image - Clickable */}
-              {team.teamSettings?.teamImage && (
-                <img 
-                  src={`http://localhost:3000${team.teamSettings.teamImage}`}
-                  alt={team.name}
-                  style={{
-                    width: "80px",
-                    height: "80px",
-                    borderRadius: "8px",
-                    objectFit: "cover",
-                    border: "2px solid #ddd",
-                    cursor: "pointer"
-                  }}
-                  onClick={() => window.location.href = `/team/${team._id}`}
-                />
-              )}
-              {/* Team Details */}
+              <img 
+                src={getTeamImageUrl(team.teamSettings?.teamImage)}
+                alt={`${team.name} team image`}
+                style={{
+                  width: "80px",
+                  height: "80px",
+                  borderRadius: "8px",
+                  objectFit: "cover",
+                  border: "2px solid #ddd",
+                  cursor: "pointer",
+                  backgroundColor: "#f5f5f5"
+                }}
+                onClick={() => window.location.href = `/team/${team._id}`}
+                onError={(e) => {
+                  e.currentTarget.src = 'https://via.placeholder.com/80x80/cccccc/969696?text=No+Image';
+                }}
+              />
               <div style={{ flex: 1 }}>
-                {/* Clickable Team Name */}
                 <span 
                   style={{ 
                     fontWeight: "bold", 
@@ -297,7 +427,6 @@ export default function TeamSelection() {
               </div>
             </div>
 
-            {/* Action Buttons */}
             <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
               {isManager ? (
                 <>
@@ -318,7 +447,7 @@ export default function TeamSelection() {
                     {isLoading ? "Leaving..." : "Leave as Manager"}
                   </button>
                   <button
-                    onClick={() => window.location.href = "/manageteam"}
+                    onClick={() => window.location.href = "/manager-profile"}
                     style={{
                       padding: "10px 20px",
                       fontSize: 16,

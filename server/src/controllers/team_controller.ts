@@ -2,8 +2,8 @@ import { Request, Response } from "express";
 import mongoose from "mongoose";
 import Team from "../models/teams";
 import Guardian from "../models/guardians";
+import { sendTeamInvitation } from "../services/email_service"; 
 
-// Get all teams
 export const get_all_teams = async (_req: Request, res: Response): Promise<void> => {
   try {
     const teams = await Team.find({}).populate("managerId");
@@ -111,7 +111,6 @@ const cleanPlayersArray = (players: any): mongoose.Types.ObjectId[] => {
   return cleanedPlayers;
 };
 
-// Add player to team
 export const add_player_to_team = async (req: Request, res: Response): Promise<void> => {
   try {
     const { teamId } = req.params;
@@ -155,6 +154,22 @@ export const add_player_to_team = async (req: Request, res: Response): Promise<v
       return;
     }
 
+    // Get manager info for email
+    const manager = await Guardian.findById(guardianId);
+
+    // Send invitation email
+    const emailSent = await sendTeamInvitation(
+      playerEmail,
+      team.name,
+      manager?.name || 'Team Manager',
+      teamId
+    );
+
+    if (!emailSent) {
+      console.warn(`Failed to send invitation email to ${playerEmail}`);
+      // Continue anyway - don't fail the whole operation if email fails
+    }
+
     team.players.push(teenager._id as mongoose.Types.ObjectId);
     teenager.teamId = new mongoose.Types.ObjectId(teamId);
 
@@ -164,9 +179,10 @@ export const add_player_to_team = async (req: Request, res: Response): Promise<v
     const updatedTeam = await Team.findById(teamId).populate('players');
 
     res.json({ 
-      message: "Player added successfully!", 
+      message: "Player invited successfully! An invitation email has been sent.", 
       team: updatedTeam,
-      addedPlayer: teenager 
+      addedPlayer: teenager,
+      emailSent: emailSent
     });
   } catch (error) {
     console.error(error);
@@ -520,7 +536,94 @@ export const update_team_settings = async (req: Request, res: Response): Promise
     res.status(500).json({ error: "Internal server error" });
   }
 };
+// Add to// Add to team_controller.ts
+export const cleanup_orphaned_managers = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { teamId } = req.params;
 
+    const team = await Team.findById(teamId);
+    if (!team) {
+      res.status(404).json({ error: "Team not found" });
+      return;
+    }
+
+    let fixesApplied = [];
+
+    // Case 1: Team has managerId but guardian doesn't exist or doesn't match
+    if (team.managerId) {
+      const manager = await Guardian.findById(team.managerId);
+      if (!manager || manager.managedTeamId?.toString() !== teamId) {
+        fixesApplied.push(`Cleared orphaned managerId: ${team.managerId}`);
+        team.managerId = null;
+        await team.save();
+      }
+    }
+
+    // Case 2: Guardians think they manage this team but team doesn't point to them
+    const orphanedGuardians = await Guardian.find({ 
+      managedTeamId: teamId,
+      _id: { $ne: team.managerId } // Exclude the actual manager if exists
+    });
+
+    for (const guardian of orphanedGuardians) {
+      fixesApplied.push(`Cleared orphaned guardian: ${guardian.name} (${guardian._id})`);
+      guardian.isManager = false;
+      guardian.managedTeamId = null;
+      await guardian.save();
+    }
+
+    res.json({
+      message: "Cleanup completed",
+      fixesApplied: fixesApplied.length > 0 ? fixesApplied : ["No fixes needed"]
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};
+export const debug_team_manager_status = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { teamId } = req.params;
+    
+    const team = await Team.findById(teamId);
+    if (!team) {
+      res.status(404).json({ error: "Team not found" });
+      return;
+    }
+
+    // Find the guardian that claims to manage this team
+    const actualManager = team.managerId ? await Guardian.findById(team.managerId) : null;
+    
+    // Find any guardians that think they manage this team
+    const guardiansManagingThisTeam = await Guardian.find({ managedTeamId: teamId });
+
+    res.json({
+      team: {
+        _id: team._id,
+        name: team.name,
+        managerId: team.managerId,
+        managerIdString: team.managerId?.toString()
+      },
+      actualManager: actualManager ? {
+        _id: actualManager._id,
+        name: actualManager.name,
+        email: actualManager.email,
+        isManager: actualManager.isManager,
+        managedTeamId: actualManager.managedTeamId
+      } : null,
+      guardiansManagingThisTeam: guardiansManagingThisTeam.map(g => ({
+        _id: g._id,
+        name: g.name,
+        email: g.email,
+        isManager: g.isManager,
+        managedTeamId: g.managedTeamId
+      }))
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};
 // Debug team manager
 export const debug_team_manager = async (req: Request, res: Response): Promise<void> => {
   try {

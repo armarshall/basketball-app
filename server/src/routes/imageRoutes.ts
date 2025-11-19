@@ -3,6 +3,7 @@ import multer from 'multer';
 import path from 'path';
 import fs from 'fs';
 import Team from '../models/teams';
+import { Image } from '../models/Image';
 
 const router = Router();
 
@@ -35,44 +36,85 @@ const upload = multer({
   }
 });
 
+// ========== GET ROUTES ==========
+
+// GET all images
+router.get('/', async (_req, res) => {
+  try {
+    console.log('📸 Fetching all images...');
+    const images = await Image.find().sort({ uploadDate: -1 });
+    console.log(`✅ Found ${images.length} images`);
+    return res.json(images);
+  } catch (error) {
+    console.error('❌ Error fetching images:', error);
+    return res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+// GET sponsor images (filter by logo filenames)
+router.get('/sponsors', async (_req, res) => {
+  try {
+    const sponsorImages = await Image.find({
+      filename: { 
+        $regex: /(nike|gatorade|wilson|baltimore|logo)/i 
+      }
+    }).sort({ uploadDate: -1 });
+    
+    return res.json(sponsorImages);
+  } catch (error) {
+    console.error('Error fetching sponsor images:', error);
+    return res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+// GET specific image by ID
+router.get('/:id', async (req, res) => {
+  try {
+    const image = await Image.findById(req.params.id);
+    if (!image) {
+      return res.status(404).json({ error: "Image not found" });
+    }
+    return res.json(image);
+  } catch (error) {
+    console.error('Error fetching image:', error);
+    return res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+// ========== UPLOAD ROUTE ==========
+
 // Team image upload route
 router.post('/upload-team', upload.single('image'), async (req, res) => {
   try {
     const { teamId, guardianId } = req.body;
 
     if (!teamId || !guardianId) {
-      res.status(400).json({ error: "teamId and guardianId are required" });
-      return;
+      return res.status(400).json({ error: "teamId and guardianId are required" });
     }
 
     if (!req.file) {
-      res.status(400).json({ error: "No image file provided" });
-      return;
+      return res.status(400).json({ error: "No image file provided" });
     }
 
     // Verify the user is the manager of this team
     const team = await Team.findById(teamId);
     if (!team) {
-      res.status(404).json({ error: "Team not found" });
-      return;
+      return res.status(404).json({ error: "Team not found" });
     }
 
     if (team.managerId?.toString() !== guardianId) {
-      res.status(403).json({ error: "You are not the manager of this team" });
-      return;
+      return res.status(403).json({ error: "You are not the manager of this team" });
     }
 
     const imageUrl = `/uploads/teams/${req.file.filename}`;
 
-    res.json({
+    return res.json({
       message: "Image uploaded successfully!",
       imageUrl: imageUrl
     });
-    return; // Explicit return
   } catch (error) {
     console.error('Error uploading team image:', error);
-    res.status(500).json({ error: "Internal server error" });
-    return; // Explicit return
+    return res.status(500).json({ error: "Internal server error" });
   }
 });
 

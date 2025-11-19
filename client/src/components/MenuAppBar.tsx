@@ -26,6 +26,7 @@ export default function MenuAppBar() {
 
   const handleSignOut = () => {
     logout();
+    setUser(null);
     navigate("/");
   };
 
@@ -40,9 +41,7 @@ export default function MenuAppBar() {
           <Button href="/rules" color="secondary" sx={{ textTransform: "none" }}>
             Rules
           </Button>
-          <Button href="/team" color="secondary" sx={{ textTransform: "none" }}>
-            Team
-          </Button>
+          {/* REMOVED: Team button - redundant with Manager Dashboard */}
           <Button href="/standings" color="secondary" sx={{ textTransform: "none" }}>
             Standings
           </Button>
@@ -55,10 +54,18 @@ export default function MenuAppBar() {
           <Button href="/upload" color="secondary" sx={{ textTransform: "none" }}>
             Upload
           </Button>
-          {/* Manage Team Link - Only show if user is a manager */}
+          
+          {/* Manager Links - Only show if user is a manager */}
           {user?.isManager && (
-            <Button href="/manageteam" color="secondary" sx={{ textTransform: "none" }}>
-              Manage Team
+            <Button href="/manager-profile" color="secondary" sx={{ textTransform: "none" }}>
+              Manager Dashboard
+            </Button>
+          )}
+          
+          {/* Teams Link - Show to all authenticated users (KEPT for player invitations) */}
+          {user && (
+            <Button href="/teams" color="secondary" sx={{ textTransform: "none" }}>
+              Teams
             </Button>
           )}
         </div>
