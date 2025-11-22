@@ -64,23 +64,26 @@ export interface IChild {
 }
 
 export interface IMatch {
+  _id?: mongoose.Types.ObjectId;
   id?: string;
   team1_id: string;
   team2_id: string;
   start_date_time?: Date;
-  team1_score?: number[];
-  team2_score?: number[];
+  team1_score?: number;
+  team2_score?: number;
   winner_id?: string;
   round_id: string;
 }
 
 export interface IRound {
+  _id?: mongoose.Types.ObjectId;
   id?: string;
   match_ids?: string[];
   tournament_id: string;
 }
 
 export interface ITournament {
+  _id?: mongoose.Types.ObjectId;
   id?: string;
   start_date_time: Date;
   is_teen_tournament: boolean;

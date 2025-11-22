@@ -38,3 +38,17 @@ export const get_round_by_id = async (req: Request, res: Response) => {
     return res.status(500).json({ message: "Internal server error" });
   }
 };
+
+export const create_round = async (req: Request, res: Response) => {
+  try {
+    const { tournament, matches } = req.body;
+    const round = new Round({
+      tournament,
+      matches,
+    });
+    await round.save();
+    return res.status(201).json(round);
+  } catch (error) {
+    return res.status(500).json({ message: "Internal server error" });
+  }
+};

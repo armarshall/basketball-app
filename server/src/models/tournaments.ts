@@ -2,6 +2,7 @@ import mongoose from "../database";
 import { ITournament } from "../types";
 
 const tournamentSchema = new mongoose.Schema<ITournament>({
+  id: { type: String, required: false },
   is_teen_tournament: { type: Boolean, required: true },
   start_date_time: { type: Date, required: false },
   round_ids: { type: [String], required: false },

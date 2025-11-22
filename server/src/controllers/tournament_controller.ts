@@ -1,7 +1,11 @@
 import Tournament from "../models/tournaments";
 import Team from "../models/teams";
+import Match from "../models/matches";
+import Round from "../models/rounds";
+import { ObjectId } from "mongodb";
+//import { get_rounds_by_tournament_id } from "../services/round_service";
 
-import { IRound, ITeam, ITournament, IMatch } from "../types";
+import { ITeam } from "../types";
 import { Request, Response } from "express";
 
 export function shuffle<T>(arr: T[]) {
@@ -24,20 +28,37 @@ function getNextSaturday(date: Date): Date {
   return new Date(date.getDate() + daysUntilSaturday);
 }
 
-export const generate_tournament = (
+export const generate_tournament = async (
   teams: ITeam[],
   week_of: Date,
-  is_teen_team: boolean
-): ITournament => {
+  is_teen_team: boolean,
+) => {
   const eligible_teams = teams.filter(
-    (team) => team.is_teen_team === is_teen_team
+    (team) => team.is_teen_team === is_teen_team,
   );
 
   console.log("number of eligble teams: ", eligible_teams.length);
-  let matches: IMatch[] = [];
   let match_time: Date = getNextSaturday(week_of);
 
   shuffle(eligible_teams);
+
+  let tournament = {
+    _id: new ObjectId(),
+    week_of: week_of,
+    is_teen_team: is_teen_team,
+    round_ids: [],
+  };
+
+  let first_round = {
+    _id: new ObjectId(),
+    tournament_id: tournament._id,
+    match_ids: [],
+  };
+
+  //tournament.round_ids.push(first_round._id);
+
+  const newTournament = await Tournament.create(tournament);
+  const newRound = await Round.create(first_round);
 
   while (eligible_teams.length > 1) {
     let team1 = eligible_teams.pop();
@@ -47,33 +68,33 @@ export const generate_tournament = (
       break;
     }
 
-    matches.push({
-      team_ids: [team1.id!, team2.id!],
+    const match = {
+      _id: new ObjectId(),
+      team1_id: team1.id,
+      team2_id: team2.id,
       start_date_time: match_time,
-      scores: [-1, -1],
+      team1_score: 0,
+      team2_score: 0,
       winner_id: "",
-    });
+    };
+
+    const newMatch = await Match.create(match);
+    console.log("Created match:", newMatch);
 
     match_time = getNextSaturday(match_time);
   }
 
-  let first_round: IRound = { matches };
-
-  return {
-    id: "",
-    start_date_time: week_of,
-    rounds: [first_round],
-    is_teen_tournament: is_teen_team,
-  };
+  await Promise.all([newTournament.save(), newRound.save()]);
 };
-
-export const generate_next_round = (tournament: ITournament): boolean => {
-  if (!tournament.rounds || tournament.rounds.length == 0) {
+/*
+export const generate_next_round = (tournament_id: string): boolean => {
+  const rounds = get_rounds_by_tournament_id(tournament_id);
+  if (!rounds || rounds.length == 0) {
     return false;
   }
 
-  const last_round_num = tournament.rounds.length - 1;
-  const last_round = tournament.rounds[last_round_num];
+  const last_round_num = rounds.length - 1;
+  const last_round = rounds[last_round_num];
 
   let winners = [] as string[];
 
@@ -83,31 +104,36 @@ export const generate_next_round = (tournament: ITournament): boolean => {
     }
   });
 
-  let new_matches: IMatch[] = [];
+  let matches = [];
   let match_time: Date = getNextSaturday(new Date());
 
   for (let i = 0; i < winners.length; i += 2) {
-    let new_match: IMatch = {
-      team_ids: [winners[i], winners[i + 1]],
+    let match: IMatch = {
+      team1_id: winners[i],
+      team2_id: winners[i + 1],
       start_date_time: match_time,
-      scores: [-1, -1],
+      team1_score: 0,
+      team2_score: 0,
       winner_id: "",
     };
 
-    new_matches.push(new_match);
+    matches.push(match);
     match_time = getNextSaturday(match_time);
   }
 
+  const matches = await Promise.all(matchPromises);
+  const match_ids = matches.map((match) => match.id);
+
   let new_round: IRound = {
-    matches: new_matches,
+    match_ids: new_matches,
   };
 
-  tournament.rounds.push(new_round);
+  rounds.push(new_round);
 
   return true;
 };
-
-export const get_all_tounaments = async (_req: Request, res: Response) => {
+*/
+export const get_all_tournaments = async (_req: Request, res: Response) => {
   return Tournament.find({}).then((result) => {
     return res.json(result);
   });
@@ -130,7 +156,7 @@ export const create_tournament = (req: Request, res: Response) => {
     const tournament_data = generate_tournament(
       teams,
       new Date(body.week_of),
-      body.is_teen_team
+      body.is_teen_team,
     );
 
     const tournament = new Tournament(tournament_data);

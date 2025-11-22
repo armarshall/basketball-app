@@ -8,16 +8,19 @@ import {
   TableRow,
   Paper,
   Button,
+  Modal,
+  Box,
 } from "@mui/material";
 import axios from "axios";
 import dayjs from "dayjs";
 import type { IMatch, ITeam } from "../types";
-import type { AxiosResponse } from "axios";
+import EventEditor from "./EventEditor";
 
 const EventsTable: React.FC = () => {
   const [matches, setMatches] = useState<IMatch[]>([]);
   const [teams, setTeams] = useState<{ [key: string]: ITeam }>({});
   const [selectedMatch, setSelectedMatch] = useState<IMatch | null>(null);
+  const [isEditorOpen, setIsEditorOpen] = useState(false);
 
   useEffect(() => {
     const fetchMatches = async () => {
@@ -57,15 +60,40 @@ const EventsTable: React.FC = () => {
 
   const handleEditClick = (match: IMatch) => {
     setSelectedMatch(match);
+    setIsEditorOpen(true);
   };
 
   const handleDeleteClick = async (matchId: string) => {
+    if (window.confirm("Are you sure you want to delete this event?")) {
+      try {
+        await axios.delete(`http://localhost:3000/api/matches/${matchId}`);
+        setMatches(matches.filter((match) => match.id !== matchId));
+      } catch (error) {
+        console.error("Error deleting match:", error);
+      }
+    }
+  };
+
+  const handleEditorClose = () => {
+    setIsEditorOpen(false);
+    setSelectedMatch(null);
+  };
+
+  const handleSave = async (editedEvent: IMatch) => {
     try {
-      await axios.delete(`http://localhost:3000/api/matches/${matchId}`);
-      setMatches(matches.filter((match) => match.id !== matchId));
+      await axios.put(
+        `http://localhost:3000/api/matches/${editedEvent.id}`,
+        editedEvent,
+      );
+
+      setMatches(
+        matches.map((match) =>
+          match.id === editedEvent.id ? editedEvent : match,
+        ),
+      );
+      handleEditorClose();
     } catch (error) {
-      console.error("Error deleting match:", error);
-      // TODO: Handle the error appropriately, e.g., display an error message.
+      console.error("Error updating match:", error);
     }
   };
 
@@ -88,6 +116,7 @@ const EventsTable: React.FC = () => {
               <TableCell align="left">Team 2</TableCell>
               <TableCell align="left">Date</TableCell>
               <TableCell align="left">Time</TableCell>
+              <TableCell align="left">Actions</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
@@ -130,6 +159,29 @@ const EventsTable: React.FC = () => {
           </TableBody>
         </Table>
       </TableContainer>
+
+      <Modal open={isEditorOpen} onClose={handleEditorClose}>
+        <Box
+          sx={{
+            position: "absolute",
+            top: "50%",
+            left: "50%",
+            transform: "translate(-50%, -50%)",
+            bgcolor: "background.paper",
+            border: "2px solid #000",
+            boxShadow: 24,
+            p: 4,
+          }}
+        >
+          {selectedMatch && (
+            <EventEditor
+              event={selectedMatch}
+              onSave={handleSave}
+              onCancel={handleEditorClose}
+            />
+          )}
+        </Box>
+      </Modal>
     </div>
   );
 };
