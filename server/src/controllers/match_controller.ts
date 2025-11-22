@@ -76,10 +76,10 @@ export const create_match = async (req: Request, res: Response) => {
 export const update_match = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
-    const { homeTeam, awayTeam, date } = req.body;
+    const { team1_id, team2_id, start_date_time } = req.body;
     const match = await Match.findByIdAndUpdate(
       id,
-      { homeTeam, awayTeam, date },
+      { team1_id, team2_id, start_date_time },
       { new: true },
     );
     if (!match) {

@@ -81,7 +81,7 @@ const EventsTable: React.FC = () => {
 
   const handleSave = async (editedEvent: IMatch) => {
     try {
-      await axios.put(
+      await axios.patch(
         `http://localhost:3000/api/matches/${editedEvent.id}`,
         editedEvent,
       );
