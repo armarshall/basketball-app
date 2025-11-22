@@ -51,7 +51,7 @@ const EventEditor: React.FC<EventEditorProps> = ({
       <TextField
         fullWidth
         margin="normal"
-        label="Start Date Time"
+        label="Start Time"
         name="start_date_time"
         value={
           editedEvent.start_date_time
@@ -60,6 +60,15 @@ const EventEditor: React.FC<EventEditorProps> = ({
         }
         onChange={handleInputChange}
         type="datetime-local"
+        InputLabelProps={{ shrink: true }}
+      />
+      <TextField
+        fullWidth
+        margin="normal"
+        label="Round ID"
+        name="round_id"
+        value={editedEvent.round_id || ""}
+        onChange={handleInputChange}
       />
       <Box
         sx={{ display: "flex", justifyContent: "space-between", marginTop: 2 }}

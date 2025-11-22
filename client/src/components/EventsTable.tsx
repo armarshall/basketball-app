@@ -21,6 +21,7 @@ const EventsTable: React.FC = () => {
   const [teams, setTeams] = useState<{ [key: string]: ITeam }>({});
   const [selectedMatch, setSelectedMatch] = useState<IMatch | null>(null);
   const [isEditorOpen, setIsEditorOpen] = useState(false);
+  const [isAddEventOpen, setIsAddEventOpen] = useState(false);
 
   useEffect(() => {
     const fetchMatches = async () => {
@@ -61,6 +62,7 @@ const EventsTable: React.FC = () => {
   const handleEditClick = (match: IMatch) => {
     setSelectedMatch(match);
     setIsEditorOpen(true);
+    setIsAddEventOpen(false);
   };
 
   const handleDeleteClick = async (matchId: string) => {
@@ -76,25 +78,43 @@ const EventsTable: React.FC = () => {
 
   const handleEditorClose = () => {
     setIsEditorOpen(false);
+    setIsAddEventOpen(false);
     setSelectedMatch(null);
   };
 
   const handleSave = async (editedEvent: IMatch) => {
     try {
-      await axios.patch(
-        `http://localhost:3000/api/matches/${editedEvent.id}`,
-        editedEvent,
-      );
+      if (editedEvent.id) {
+        // Existing event, update it
+        await axios.patch(
+          `http://localhost:3000/api/matches/${editedEvent.id}`,
+          editedEvent,
+        );
 
-      setMatches(
-        matches.map((match) =>
-          match.id === editedEvent.id ? editedEvent : match,
-        ),
-      );
+        setMatches(
+          matches.map((match) =>
+            match.id === editedEvent.id ? editedEvent : match,
+          ),
+        );
+      } else {
+        const response = await axios.post(
+          "http://localhost:3000/api/matches",
+          editedEvent,
+        );
+        const newMatch = response.data;
+
+        setMatches([...matches, newMatch]);
+      }
       handleEditorClose();
     } catch (error) {
       console.error("Error updating match:", error);
     }
+  };
+
+  const handleAddEventClick = () => {
+    setSelectedMatch(null);
+    setIsEditorOpen(true);
+    setIsAddEventOpen(true);
   };
 
   return (
@@ -102,6 +122,7 @@ const EventsTable: React.FC = () => {
       <Button
         variant="contained"
         style={{ margin: "20px", backgroundColor: "#7CCD7C" }}
+        onClick={handleAddEventClick}
       >
         Add Event
       </Button>
@@ -173,13 +194,18 @@ const EventsTable: React.FC = () => {
             p: 4,
           }}
         >
-          {selectedMatch && (
-            <EventEditor
-              event={selectedMatch}
-              onSave={handleSave}
-              onCancel={handleEditorClose}
-            />
-          )}
+          <EventEditor
+            event={
+              selectedMatch || {
+                team1_id: "",
+                team2_id: "",
+                start_date_time: "",
+                round_id: "",
+              }
+            }
+            onSave={handleSave}
+            onCancel={handleEditorClose}
+          />
         </Box>
       </Modal>
     </div>

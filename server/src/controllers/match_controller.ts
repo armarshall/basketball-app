@@ -64,8 +64,8 @@ export const get_teams_by_match_id = async (req: Request, res: Response) => {
 
 export const create_match = async (req: Request, res: Response) => {
   try {
-    const { homeTeam, awayTeam, date } = req.body;
-    const match = new Match({ homeTeam, awayTeam, date });
+    const { team1_id, team2_id, start_date_time, round_id } = req.body;
+    const match = new Match({ team1_id, team2_id, start_date_time, round_id });
     await match.save();
     return res.status(201).json(match);
   } catch (error) {
