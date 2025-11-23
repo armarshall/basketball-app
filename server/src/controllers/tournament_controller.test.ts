@@ -4,7 +4,7 @@ import { ITeam } from "../types";
 import {
   generate_next_round,
   generate_tournament,
-  get_all_tounaments,
+  get_all_tournaments,
   get_tournament_by_id,
   shuffle,
 } from "./tournament_controller";
@@ -27,7 +27,7 @@ describe("tournament controller", () => {
 
     const tournament = generate_tournament([team1, team2], new Date(), true);
     expect(tournament.is_teen_tournament).toBe(true);
-    expect(tournament.rounds.length).toBe(1);
+    expect(tournament.round_ids.length).toBe(1);
   });
 
   test("test pick a random item", () => {
@@ -69,20 +69,20 @@ describe("tournament controller", () => {
     const tournament = generate_tournament(
       [team1, team2, team3, team4],
       new Date(),
-      true
+      true,
     );
 
     console.log(tournament);
-    console.log(tournament.rounds[0].matches);
+    console.log(tournament.round_ids[0].matches);
 
     expect(tournament.is_teen_tournament).toBe(true);
-    expect(tournament.rounds.length).toBe(1);
-    expect(tournament.rounds[0].matches.length).toBe(2);
-    expect(tournament.rounds[0].matches[0].team_ids[0]).not.toBe(
-      tournament.rounds[0].matches[0].team_ids[1]
+    expect(tournament.round_ids.length).toBe(1);
+    expect(tournament.round_ids[0].matches.length).toBe(2);
+    expect(tournament.round_ids[0].matches[0].team_ids[0]).not.toBe(
+      tournament.round_ids[0].matches[0].team_ids[1],
     );
-    expect(tournament.rounds[0].matches[1].team_ids[0]).not.toBe(
-      tournament.rounds[0].matches[1].team_ids[1]
+    expect(tournament.round_ids[0].matches[1].team_ids[0]).not.toBe(
+      tournament.round_ids[0].matches[1].team_ids[1],
     );
   });
 
@@ -118,19 +118,19 @@ describe("tournament controller", () => {
     let tournament = generate_tournament(
       [team1, team2, team3, team4],
       new Date(),
-      true
+      true,
     );
 
-    tournament.rounds[0].matches[0].winner_id =
-      tournament.rounds[0].matches[0].team_ids[0];
-    tournament.rounds[0].matches[1].winner_id =
-      tournament.rounds[0].matches[0].team_ids[0];
+    tournament.round_ids[0].matches[0].winner_id =
+      tournament.round_ids[0].matches[0].team_ids[0];
+    tournament.round_ids[0].matches[1].winner_id =
+      tournament.round_ids[0].matches[0].team_ids[0];
 
     const success = generate_next_round(tournament);
 
     expect(success).toBeTruthy();
-    expect(tournament.rounds.length).toBe(2);
-    expect(tournament.rounds[1].matches.length).toBe(1);
+    expect(tournament.round_ids.length).toBe(2);
+    expect(tournament.round_ids[1].matches.length).toBe(1);
   });
 
   test(
@@ -148,7 +148,7 @@ describe("tournament controller", () => {
       console.log(all_tournaments);
       expect(mock_json).toHaveBeenCalled();
     },
-    5 * 1000
+    5 * 1000,
   );
 
   test("get a tournament by id", async () => {
