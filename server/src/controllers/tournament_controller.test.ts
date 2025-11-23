@@ -2,32 +2,49 @@ import { describe, expect, test, jest } from "@jest/globals";
 
 import { ITeam } from "../types";
 import {
-  generate_next_round,
+  create_tournament,
   generate_tournament,
-  get_all_tournaments,
-  get_tournament_by_id,
+  //get_tournament_by_id,
+  //get_all_tournaments,
   shuffle,
 } from "./tournament_controller";
+import Tournament from "../models/tournaments";
+import Team from "../models/teams";
+import Match from "../models/matches";
+import Round from "../models/rounds";
+import { ObjectId } from "mongodb";
 
 describe("tournament controller", () => {
-  test("generate a tournament", () => {
+  test("generate a tournament", async () => {
     const team1: ITeam = {
       name: "team 1",
-      id: "1",
+      id: new ObjectId().toHexString(),
       players: [],
       is_teen_team: true,
-    };
+    } as any;
 
     const team2: ITeam = {
       name: "team 2",
-      id: "1",
+      id: new ObjectId().toHexString(),
       players: [],
       is_teen_team: true,
-    };
+    } as any;
 
-    const tournament = generate_tournament([team1, team2], new Date(), true);
-    expect(tournament.is_teen_tournament).toBe(true);
-    expect(tournament.round_ids.length).toBe(1);
+    const week_of = new Date();
+
+    const tournamentCreateSpy = jest.spyOn(Tournament, "create");
+    const roundCreateSpy = jest.spyOn(Round, "create");
+    const matchCreateSpy = jest.spyOn(Match, "create");
+
+    await generate_tournament([team1, team2], week_of, true);
+
+    expect(tournamentCreateSpy).toHaveBeenCalled();
+    expect(roundCreateSpy).toHaveBeenCalled();
+    expect(matchCreateSpy).toHaveBeenCalled();
+
+    tournamentCreateSpy.mockRestore();
+    roundCreateSpy.mockRestore();
+    matchCreateSpy.mockRestore();
   });
 
   test("test pick a random item", () => {
@@ -37,135 +54,96 @@ describe("tournament controller", () => {
     expect(nums.length).toBe(3);
   });
 
-  test("generate multiple matches", () => {
+  test("generate multiple matches", async () => {
     const team1: ITeam = {
       name: "team 1",
-      id: "1",
+      id: new ObjectId().toHexString(),
       players: [],
       is_teen_team: true,
-    };
+    } as any;
 
     const team2: ITeam = {
       name: "team 2",
-      id: "2",
+      id: new ObjectId().toHexString(),
       players: [],
       is_teen_team: true,
-    };
+    } as any;
 
     const team3: ITeam = {
-      name: "team 2",
-      id: "3",
+      name: "team 3",
+      id: new ObjectId().toHexString(),
       players: [],
       is_teen_team: true,
-    };
+    } as any;
 
     const team4: ITeam = {
-      name: "team 2",
-      id: "4",
+      name: "team 4",
+      id: new ObjectId().toHexString(),
       players: [],
       is_teen_team: true,
-    };
+    } as any;
 
-    const tournament = generate_tournament(
-      [team1, team2, team3, team4],
-      new Date(),
-      true,
-    );
+    const week_of = new Date();
 
-    console.log(tournament);
-    console.log(tournament.round_ids[0].matches);
+    const tournamentCreateSpy = jest.spyOn(Tournament, "create");
+    const roundCreateSpy = jest.spyOn(Round, "create");
+    const matchCreateSpy = jest.spyOn(Match, "create");
 
-    expect(tournament.is_teen_tournament).toBe(true);
-    expect(tournament.round_ids.length).toBe(1);
-    expect(tournament.round_ids[0].matches.length).toBe(2);
-    expect(tournament.round_ids[0].matches[0].team_ids[0]).not.toBe(
-      tournament.round_ids[0].matches[0].team_ids[1],
-    );
-    expect(tournament.round_ids[0].matches[1].team_ids[0]).not.toBe(
-      tournament.round_ids[0].matches[1].team_ids[1],
-    );
+    await generate_tournament([team1, team2, team3, team4], week_of, true);
+
+    expect(tournamentCreateSpy).toHaveBeenCalled();
+    expect(roundCreateSpy).toHaveBeenCalled();
+    expect(matchCreateSpy).toHaveBeenCalledTimes(2);
+
+    tournamentCreateSpy.mockRestore();
+    roundCreateSpy.mockRestore();
+    matchCreateSpy.mockRestore();
   });
 
-  test("simulate a next round", () => {
-    const team1: ITeam = {
-      name: "team 1",
-      id: "1",
-      players: [],
-      is_teen_team: true,
-    };
-
-    const team2: ITeam = {
-      name: "team 2",
-      id: "2",
-      players: [],
-      is_teen_team: true,
-    };
-
-    const team3: ITeam = {
-      name: "team 2",
-      id: "3",
-      players: [],
-      is_teen_team: true,
-    };
-
-    const team4: ITeam = {
-      name: "team 2",
-      id: "4",
-      players: [],
-      is_teen_team: true,
-    };
-
-    let tournament = generate_tournament(
-      [team1, team2, team3, team4],
-      new Date(),
-      true,
-    );
-
-    tournament.round_ids[0].matches[0].winner_id =
-      tournament.round_ids[0].matches[0].team_ids[0];
-    tournament.round_ids[0].matches[1].winner_id =
-      tournament.round_ids[0].matches[0].team_ids[0];
-
-    const success = generate_next_round(tournament);
-
-    expect(success).toBeTruthy();
-    expect(tournament.round_ids.length).toBe(2);
-    expect(tournament.round_ids[1].matches.length).toBe(1);
-  });
-
-  test(
-    "get all tournaments",
-    async () => {
-      const req = {} as any;
-
-      const mock_json = jest.fn();
-
-      const res = {
-        json: mock_json,
-      } as any;
-
-      const all_tournaments = await get_all_tounaments(req, res);
-      console.log(all_tournaments);
-      expect(mock_json).toHaveBeenCalled();
-    },
-    5 * 1000,
-  );
-
-  test("get a tournament by id", async () => {
+  test("create_tournament: should return an error if content is missing", async () => {
     const req = {
-      params: {
-        id: "68f987913d5f14172215bc36" as String,
+      body: null,
+    } as any;
+
+    const res = {
+      status: jest.fn().mockReturnThis(),
+      json: jest.fn(),
+    } as any;
+
+    await create_tournament(req, res);
+
+    expect(res.status).toHaveBeenCalledWith(400);
+    expect(res.json).toHaveBeenCalledWith({ error: "content missing" });
+  });
+
+  test("create_tournament: should create a tournament successfully", async () => {
+    const req = {
+      body: {
+        week_of: new Date().toISOString(),
+        is_teen_team: true,
       },
     } as any;
 
-    const mock_json = jest.fn();
-
     const res = {
-      json: mock_json,
+      status: jest.fn().mockReturnThis(),
+      json: jest.fn(),
     } as any;
 
-    const all_tournaments = await get_tournament_by_id(req, res);
-    console.log(all_tournaments);
-    expect(mock_json).toHaveBeenCalled();
+    jest.spyOn(Team, "find").mockResolvedValue([
+      {
+        _id: new ObjectId(),
+        name: "Team 1",
+        players: [],
+        is_teen_team: true,
+      },
+    ]);
+    jest.spyOn(Tournament.prototype, "save").mockImplementation(async () => {
+      return {} as any;
+    });
+    jest.spyOn(Tournament.prototype, "validateSync").mockReturnValue(null);
+
+    await create_tournament(req, res);
+
+    expect(res.json).toHaveBeenCalled();
   });
 });

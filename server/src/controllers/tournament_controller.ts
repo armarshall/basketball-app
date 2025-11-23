@@ -31,10 +31,10 @@ function getNextSaturday(date: Date): Date {
 export const generate_tournament = async (
   teams: ITeam[],
   week_of: Date,
-  is_teen_team: boolean,
+  is_teen_tournament: boolean,
 ) => {
   const eligible_teams = teams.filter(
-    (team) => team.is_teen_team === is_teen_team,
+    (team) => team.is_teen_team === is_teen_tournament,
   );
 
   console.log("number of eligble teams: ", eligible_teams.length);
@@ -45,7 +45,7 @@ export const generate_tournament = async (
   let tournament = {
     _id: new ObjectId(),
     week_of: week_of,
-    is_teen_team: is_teen_team,
+    is_teen_tournament: is_teen_tournament,
     round_ids: [],
   };
 
@@ -76,6 +76,7 @@ export const generate_tournament = async (
       team1_score: 0,
       team2_score: 0,
       winner_id: "",
+      round_id: newRound._id,
     };
 
     const newMatch = await Match.create(match);
