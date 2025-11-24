@@ -2,19 +2,18 @@ import mongoose from "../database";
 import { IMatch } from "../types";
 
 const matchSchema = new mongoose.Schema<IMatch>({
-  id: { type: String, required: false },
-  team1_id: { type: String, required: true },
-  team2_id: { type: String, required: true },
+  team_ids: { type: [String], required: true }, // ✅ FIX: Use 'team_ids' instead of 'team1_id'
   start_date_time: { type: Date, required: false },
-  team1_score: { type: Number, required: false },
-  team2_score: { type: Number, required: false },
+  scores: { type: [Number], required: false },
   winner_id: { type: String, required: false },
   round_id: { type: String, required: true },
 });
 
 matchSchema.set("toJSON", {
-  transform: (_document, returnedObject) => {
+  transform: (_document, returnedObject: any) => { // ✅ FIX: Add 'any' type
     returnedObject.id = returnedObject._id.toString();
+    delete returnedObject._id;
+    delete returnedObject.__v;
   },
 });
 
