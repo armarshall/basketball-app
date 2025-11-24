@@ -79,8 +79,9 @@ export interface IChild {
 }
 
 export interface IMatch {
+  _id?: mongoose.Types.ObjectId;
   id?: string;
-  team_ids: string [];
+  team_ids: string[];
   start_date_time?: Date;
   scores?: number[];
   winner_id?: string;
@@ -88,12 +89,14 @@ export interface IMatch {
 }
 
 export interface IRound {
+  _id?: mongoose.Types.ObjectId;
   id?: string;
   matches: IMatch[];
   tournament_id: string;
 }
 
 export interface ITournament {
+  _id?: mongoose.Types.ObjectId;
   id?: string;
   start_date_time: Date;
   is_teen_tournament: boolean;

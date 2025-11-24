@@ -1,5 +1,6 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { TextField, Button, Box } from "@mui/material";
+import dayjs from "dayjs";
 
 import type { IMatch } from "../types";
 
@@ -16,6 +17,10 @@ const EventEditor: React.FC<EventEditorProps> = ({
 }) => {
   const [editedEvent, setEditedEvent] = useState<IMatch>(event);
 
+  useEffect(() => {
+    setEditedEvent(event);
+  }, [event]);
+
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setEditedEvent({ ...editedEvent, [name]: value });
@@ -30,33 +35,39 @@ const EventEditor: React.FC<EventEditorProps> = ({
       <TextField
         fullWidth
         margin="normal"
-        label="Team 1"
-        name="team1"
-        value={editedEvent.team1 || ""}
+        label="Team 1 ID"
+        name="team1_id"
+        value={editedEvent.team1_id || ""}
         onChange={handleInputChange}
       />
       <TextField
         fullWidth
         margin="normal"
-        label="Team 2"
-        name="team2"
-        value={editedEvent.team2 || ""}
+        label="Team 2 ID"
+        name="team2_id"
+        value={editedEvent.team2_id || ""}
         onChange={handleInputChange}
       />
       <TextField
         fullWidth
         margin="normal"
-        label="Date"
-        name="date"
-        value={editedEvent.date || ""}
+        label="Start Time"
+        name="start_date_time"
+        value={
+          editedEvent.start_date_time
+            ? dayjs(editedEvent.start_date_time).format("YYYY-MM-DDTHH:mm")
+            : ""
+        }
         onChange={handleInputChange}
+        type="datetime-local"
+        InputLabelProps={{ shrink: true }}
       />
       <TextField
         fullWidth
         margin="normal"
-        label="Time"
-        name="time"
-        value={editedEvent.time || ""}
+        label="Round ID"
+        name="round_id"
+        value={editedEvent.round_id || ""}
         onChange={handleInputChange}
       />
       <Box

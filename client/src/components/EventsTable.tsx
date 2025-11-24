@@ -8,16 +8,20 @@ import {
   TableRow,
   Paper,
   Button,
+  Modal,
+  Box,
 } from "@mui/material";
 import axios from "axios";
 import dayjs from "dayjs";
 import type { IMatch, ITeam } from "../types";
-import type { AxiosResponse } from "axios";
+import EventEditor from "./EventEditor";
 
 const EventsTable: React.FC = () => {
   const [matches, setMatches] = useState<IMatch[]>([]);
   const [teams, setTeams] = useState<{ [key: string]: ITeam }>({});
   const [selectedMatch, setSelectedMatch] = useState<IMatch | null>(null);
+  const [isEditorOpen, setIsEditorOpen] = useState(false);
+  const [isAddEventOpen, setIsAddEventOpen] = useState(false);
 
   useEffect(() => {
     const fetchMatches = async () => {
@@ -57,16 +61,60 @@ const EventsTable: React.FC = () => {
 
   const handleEditClick = (match: IMatch) => {
     setSelectedMatch(match);
+    setIsEditorOpen(true);
+    setIsAddEventOpen(false);
   };
 
   const handleDeleteClick = async (matchId: string) => {
-    try {
-      await axios.delete(`http://localhost:3000/api/matches/${matchId}`);
-      setMatches(matches.filter((match) => match.id !== matchId));
-    } catch (error) {
-      console.error("Error deleting match:", error);
-      // TODO: Handle the error appropriately, e.g., display an error message.
+    if (window.confirm("Are you sure you want to delete this event?")) {
+      try {
+        await axios.delete(`http://localhost:3000/api/matches/${matchId}`);
+        setMatches(matches.filter((match) => match.id !== matchId));
+      } catch (error) {
+        console.error("Error deleting match:", error);
+      }
     }
+  };
+
+  const handleEditorClose = () => {
+    setIsEditorOpen(false);
+    setIsAddEventOpen(false);
+    setSelectedMatch(null);
+  };
+
+  const handleSave = async (editedEvent: IMatch) => {
+    try {
+      if (editedEvent.id) {
+        // Existing event, update it
+        await axios.patch(
+          `http://localhost:3000/api/matches/${editedEvent.id}`,
+          editedEvent,
+        );
+
+        setMatches(
+          matches.map((match) =>
+            match.id === editedEvent.id ? editedEvent : match,
+          ),
+        );
+      } else {
+        const response = await axios.post(
+          "http://localhost:3000/api/matches",
+          editedEvent,
+        );
+        const newMatch = response.data;
+
+        setMatches([...matches, newMatch]);
+      }
+      handleEditorClose();
+    } catch (error) {
+      console.error("Error updating match:", error);
+    }
+  };
+
+  const handleAddEventClick = () => {
+    setSelectedMatch(null);
+    setIsEditorOpen(true);
+    setIsAddEventOpen(true);
   };
 
   return (
@@ -74,6 +122,7 @@ const EventsTable: React.FC = () => {
       <Button
         variant="contained"
         style={{ margin: "20px", backgroundColor: "#7CCD7C" }}
+        onClick={handleAddEventClick}
       >
         Add Event
       </Button>
@@ -88,6 +137,7 @@ const EventsTable: React.FC = () => {
               <TableCell align="left">Team 2</TableCell>
               <TableCell align="left">Date</TableCell>
               <TableCell align="left">Time</TableCell>
+              <TableCell align="left">Actions</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
@@ -130,6 +180,34 @@ const EventsTable: React.FC = () => {
           </TableBody>
         </Table>
       </TableContainer>
+
+      <Modal open={isEditorOpen} onClose={handleEditorClose}>
+        <Box
+          sx={{
+            position: "absolute",
+            top: "50%",
+            left: "50%",
+            transform: "translate(-50%, -50%)",
+            bgcolor: "background.paper",
+            border: "2px solid #000",
+            boxShadow: 24,
+            p: 4,
+          }}
+        >
+          <EventEditor
+            event={
+              selectedMatch || {
+                team1_id: "",
+                team2_id: "",
+                start_date_time: "",
+                round_id: "",
+              }
+            }
+            onSave={handleSave}
+            onCancel={handleEditorClose}
+          />
+        </Box>
+      </Modal>
     </div>
   );
 };

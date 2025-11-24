@@ -5,11 +5,11 @@ import {
   create_tournament
 } from "../controllers/tournament_controller";
 
-const router = Router(); // ✅ Now Router is used
+const router = Router();
 
 // Tournament routes
 router.get("/", get_all_tournaments);
 router.get("/:id", get_tournament_by_id);
 router.post("/", create_tournament);
 
-export default router; // ✅ Now router is exported
+export default router;

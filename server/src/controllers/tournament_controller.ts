@@ -1,36 +1,102 @@
 import Tournament from "../models/tournaments";
 import Team from "../models/teams";
+import Match from "../models/matches";
+import Round from "../models/rounds";
+import { ObjectId } from "mongodb";
+//import { get_rounds_by_tournament_id } from "../services/round_service";
 
-import { ITeam, ITournament } from "../types";
+import { ITeam } from "../types";
 import { Request, Response } from "express";
 
-export const generate_tournament = (
+export function shuffle<T>(arr: T[]) {
+  arr.sort(() => Math.random() - 0.5);
+}
+
+/**
+ * Gets the next Saturday of the given date
+ * date:    date to find the next Saturday for
+ * return:  1 Saturday from date
+ */
+function getNextSaturday(date: Date): Date {
+  // 0 = Sunday, 6 = Saturday
+  const currentDay = date.getDay();
+
+  // If today is Saturday, schedule for next Saturday
+  const daysUntilSaturday = currentDay != 6 ? 6 - currentDay : 7;
+
+  // Return next saturday's date
+  return new Date(date.getTime() + daysUntilSaturday * 24 * 60 * 60 * 1000);
+}
+
+export const generate_tournament = async (
   teams: ITeam[],
   week_of: Date,
-  is_teen_team: boolean
-): ITournament => {
+  is_teen_tournament: boolean,
+) => {
   const eligible_teams = teams.filter(
-    (team) => team.is_teen_team === is_teen_team
+    (team) => team.is_teen_team === is_teen_tournament,
   );
 
   console.log("number of eligible teams: ", eligible_teams.length);
-  
-  // Create tournament structure that matches your ITournament interface
-  const tournament: ITournament = {
+  let match_time: Date = getNextSaturday(week_of);
+
+  shuffle(eligible_teams);
+
+  let tournament = {
+    _id: new ObjectId(),
     start_date_time: week_of,
-    is_teen_tournament: is_teen_team,
-    round_ids: [] // ✅ This matches your interface (optional array)
+    is_teen_tournament: is_teen_tournament,
+    round_ids: [],
   };
 
-  return tournament;
+  let first_round = {
+    _id: new ObjectId(),
+    tournament_id: tournament._id.toString(),
+    matches: [],
+  };
+
+  const newTournament = await Tournament.create(tournament);
+  const newRound = await Round.create(first_round);
+
+  const match_ids: string[] = [];
+
+  while (eligible_teams.length > 1) {
+    let team1 = eligible_teams.pop();
+    let team2 = eligible_teams.pop();
+
+    if (!team1 || !team2) {
+      break;
+    }
+
+    // ✅ FIX: Use team_ids array instead of team1_id/team2_id
+    const match = {
+      _id: new ObjectId(),
+      team_ids: [team1._id?.toString() || team1.id || "", team2._id?.toString() || team2.id || ""],
+      start_date_time: match_time,
+      scores: [0, 0],
+      winner_id: "",
+      round_id: (newRound._id as ObjectId).toString(),
+    };
+
+    const newMatch = await Match.create(match);
+    match_ids.push(newMatch._id.toString());
+    console.log("Created match:", newMatch);
+
+    match_time = getNextSaturday(match_time);
+  }
+
+  // Update round with match IDs
+  newRound.matches = match_ids;
+  await Promise.all([newTournament.save(), newRound.save()]);
+
+  // Update tournament with round_id
+  newTournament.round_ids = [(newRound._id as ObjectId).toString()];
+  await newTournament.save();
+
+  // Return the created tournament
+  return newTournament;
 };
 
-export const generate_next_round = (): boolean => {
-  console.log("generate_next_round called but needs implementation");
-  return false;
-};
-
-// Get all tournaments
 export const get_all_tournaments = async (_req: Request, res: Response) => {
   try {
     const tournaments = await Tournament.find({});
@@ -65,14 +131,12 @@ export const create_tournament = async (req: Request, res: Response) => {
     }
 
     const teams = await Team.find({});
-    const tournament_data = generate_tournament(
+    const saved_tournament = await generate_tournament(
       teams,
       new Date(body.week_of),
-      body.is_teen_team
+      body.is_teen_team,
     );
 
-    const tournament = new Tournament(tournament_data);
-    const saved_tournament = await tournament.save();
     return res.json(saved_tournament);
     
   } catch (error) {

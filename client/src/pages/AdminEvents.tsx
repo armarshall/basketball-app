@@ -1,7 +1,37 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import EventsTable from "../components/EventsTable";
 
-const Events: React.FC = () => {
+const AdminEvents: React.FC = () => {
+  const [isAdmin, setIsAdmin] = useState(false);
+
+  useEffect(() => {
+    const storedUser = sessionStorage.getItem("user");
+    if (storedUser) {
+      try {
+        const user = JSON.parse(storedUser);
+        if (user && user.isAdmin === true) {
+          setIsAdmin(true);
+        } else {
+          setIsAdmin(false);
+        }
+      } catch (error) {
+        console.error("Error parsing user from session storage:", error);
+        setIsAdmin(false);
+      }
+    } else {
+      setIsAdmin(false);
+    }
+  }, []);
+
+  if (!isAdmin) {
+    return (
+      <div>
+        <h1>Access Denied</h1>
+        <p>You must be an administrator to view this page.</p>
+      </div>
+    );
+  }
+
   return (
     <div>
       <h1 style={{ margin: "20px" }}>Events</h1>
@@ -10,4 +40,4 @@ const Events: React.FC = () => {
   );
 };
 
-export default Events;
+export default AdminEvents;
