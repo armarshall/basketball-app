@@ -3,7 +3,6 @@ import { IGuardian } from "../types";
 import { hashPassword } from "../services/hashing";
 
 const guardianSchema = new mongoose.Schema<IGuardian>({
-  id: { type: String },
   name: { type: String, required: true },
   dateOfBirth: { type: Date, required: true },
   email: { type: String, required: true, unique: true },
@@ -14,15 +13,16 @@ const guardianSchema = new mongoose.Schema<IGuardian>({
     type: mongoose.Schema.Types.ObjectId, 
     ref: 'Team',
     default: null 
-  },
-  isAdmin: { type: Boolean, default: false },
+  }
 });
 
 // Transform output when converting to JSON
 guardianSchema.set("toJSON", {
   transform: (_document, returnedObject) => {
-    returnedObject.id = returnedObject._id.toString();
-    delete (returnedObject as any).password;
+    // Fix: Use type assertion to handle the ObjectId properly
+    const obj = returnedObject as any;
+    obj.id = obj._id.toString();
+    delete obj.password;
   },
 });
 
@@ -40,4 +40,4 @@ guardianSchema.pre("save", async function (next) {
   }
 });
 
-export default mongoose.model("Guardian", guardianSchema);
+export default mongoose.model<IGuardian>("Guardian", guardianSchema);

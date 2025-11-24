@@ -13,10 +13,12 @@ import LogIn from "./pages/LogIn";
 import { TeamCreation } from "./pages/TeamCreation";
 import Sponsors from "./pages/Sponsors";
 import ImageUpload from "./pages/ImageUpload";
-import TeamPage from "./components/TeamPage";
 import { StatsViewerPage } from "./pages/StatsViewerTestPage";
 import { StatsEditorPage } from "./pages/StatsEditorTestPage";
-import AdminEvents from "./pages/AdminEvents";
+import TeamSelection from "./components/TeamSelection";
+import ManagerProfile from "./components/ManagerProfile";
+import TeamSettings from "./pages/TeamSettings"; 
+import TeamDetails from "./pages/TeamDetails"; // ADD THIS IMPORT
 
 function App() {
   return (
@@ -25,7 +27,13 @@ function App() {
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/rules" element={<Rules />} />
+        
+        {/* Team Routes - ADD THIS ROUTE */}
+        <Route path="/team/:id" element={<TeamDetails />} />
+        
+        <Route path="/team/:id/settings" element={<TeamSettings />} />
         <Route path="/team" element={<Team />} />
+        
         <Route path="/standings" element={<Standings />} />
         <Route path="/about" element={<About />} />
         <Route path="/signup" element={<SignUp />} />
@@ -35,10 +43,17 @@ function App() {
         <Route path="/teamcreate" element={<TeamCreation />} />
         <Route path="/sponsors" element={<Sponsors />} />
         <Route path="/upload" element={<ImageUpload />} />
-        <Route path="/teams/:teamName" element={<TeamPage />} />
+        
+        <Route path="/teams" element={<TeamSelection />} />
+        <Route path="/manager-profile" element={<ManagerProfile />} />
+        
+        {/* Remove duplicate route */}
+        {/* <Route path="/team-settings/:id" element={<TeamSettings />} /> */}
+        
         <Route path="/stats-test" element={<StatsViewerPage />} />
         <Route path="/stats-update" element={<StatsEditorPage />} />
-        <Route path="/admin/events" element={<AdminEvents />} />
+
+        <Route path="*" element={<div>Page not found</div>} />
       </Routes>
     </BrowserRouter>
   );

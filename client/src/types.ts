@@ -1,26 +1,5 @@
 import mongoose from "mongoose";
 
-export interface Statline {
-  points: number;
-  rebounds: number;
-  assists: number;
-  blocks: number;
-  steals: number;
-  turnovers: number;
-  field_goals_made: number;
-  field_goals_attempted: number;
-  three_pointers_made: number;
-  three_pointers_attempted: number;
-  personal_fouls: number;
-  minutes: number;
-}
-
-export interface GameStats {
-  date: Date;
-  game_id: string;
-  statline: Statline; // decided to break this up for readability, also easier assignment
-}
-
 export interface ITeam {
   _id?: mongoose.Types.ObjectId;
   id?: string;
@@ -28,28 +7,89 @@ export interface ITeam {
   players: mongoose.Types.ObjectId[];
   is_teen_team: boolean;
   managerId?: mongoose.Types.ObjectId | null;
+  teamSettings?: TeamSettings;
+}
+
+export interface TeamSettings {
+  jerseyColor: string;
+  primaryColor: string;
+  secondaryColor: string;
+  practiceDays: string[];
+  practiceTime: string;
+  maxPlayers: number;
+  seasonStart: Date;
+  seasonEnd: Date;
+  contactEmail: string;
+  contactPhone: string;
+  teamImage: string;
+}
+
+export interface IGuardian {
+  _id?: mongoose.Types.ObjectId;
+  id?: string;
+  name: string;
+  dateOfBirth: Date;
+  email: string;
+  password: string;
+  childId?: string;
+  isManager?: boolean;
+  isAdmin?: boolean; // Add this line if you need admin
+  managedTeamId?: mongoose.Types.ObjectId | null;
+}
+
+export interface ITeenager {
+  _id?: mongoose.Types.ObjectId;
+  id?: string;
+  name: string;
+  dateOfBirth: Date;
+  email: string;
+  password: string;
+  teamId?: mongoose.Types.ObjectId | null;
+  game_stats?: GameStats[]; // Add this line
+}
+
+export interface GameStats {
+  game_id: string;
+  statline: Statline;
+  date: Date;
+}
+export interface Statline {
+  points: number;
+  rebounds: number;
+  assists: number;
+  steals: number;
+  blocks: number;
+  turnovers: number;
+}
+export interface IChild {
+  id: string;
+  name: string;
+  dateOfBirth: Date;
+  guardianId: string;
+  teamId?: string;
+  game_stats?: GameStats[];
 }
 
 export interface IMatch {
-  id?: string;
-  team1_id: string;
-  team2_id: string;
+  team_ids: string[];
   start_date_time?: Date;
-  team1_score?: number[];
-  team2_score?: number[];
+  scores?: number[];
   winner_id?: string;
-  round_id: string;
 }
 
 export interface IRound {
-  id?: string;
-  match_ids?: string[];
-  tournament_id: string;
+  matches: IMatch[];
 }
 
 export interface ITournament {
   id?: string;
   start_date_time: Date;
   is_teen_tournament: boolean;
-  round_ids?: string[];
+  rounds: IRound[];
+}
+
+export interface IImage extends mongoose.Document {
+  filename: string;
+  url: string;
+  uploadDate: Date;
 }
