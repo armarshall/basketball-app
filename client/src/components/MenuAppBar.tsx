@@ -41,7 +41,6 @@ export default function MenuAppBar() {
           <Button href="/rules" color="secondary" sx={{ textTransform: "none" }}>
             Rules
           </Button>
-          {/* REMOVED: Team button - redundant with Manager Dashboard */}
           <Button href="/standings" color="secondary" sx={{ textTransform: "none" }}>
             Standings
           </Button>
@@ -55,17 +54,15 @@ export default function MenuAppBar() {
             Upload
           </Button>
           
+          {/* Teams Link - Show to ALL users (logged in or not) */}
+          <Button href="/teams" color="secondary" sx={{ textTransform: "none" }}>
+            Browse Teams
+          </Button>
+          
           {/* Manager Links - Only show if user is a manager */}
           {user?.isManager && (
             <Button href="/manager-profile" color="secondary" sx={{ textTransform: "none" }}>
               Manager Dashboard
-            </Button>
-          )}
-          
-          {/* Teams Link - Show to all authenticated users (KEPT for player invitations) */}
-          {user && (
-            <Button href="/teams" color="secondary" sx={{ textTransform: "none" }}>
-              Teams
             </Button>
           )}
         </div>

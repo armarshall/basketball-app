@@ -195,7 +195,7 @@ export const add_player_to_team = async (
     }
 
     const playerIdString = teenager._id!.toString();
-    const teamPlayerIds = team.players.map((p) => p.toString());
+    const teamPlayerIds = team.players.map((p: mongoose.Types.ObjectId) => p.toString());
 
     if (teamPlayerIds.includes(playerIdString)) {
       res.status(409).json({ error: "Player already in this team" });
@@ -255,7 +255,8 @@ export const remove_player_from_team = async (
       return;
     }
 
-    team.players = team.players.filter((p) => p.toString() !== playerId);
+    const playerIdString = teenager._id!.toString();
+    team.players = team.players.filter((p: mongoose.Types.ObjectId) => p.toString() !== playerIdString);
     teenager.teamId = null;
 
     await team.save();
