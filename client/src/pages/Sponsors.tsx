@@ -12,6 +12,7 @@ interface Image {
 function Sponsors() {
   const [sponsorImages, setSponsorImages] = useState<Image[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     fetchSponsorImages();
@@ -19,26 +20,97 @@ function Sponsors() {
 
   const fetchSponsorImages = async () => {
     try {
-      const response = await axios.get('http://localhost:3000/api/images');
+      setError(null);
+      // ✅ FIX: Use the correct sponsor-specific endpoint
+      const response = await axios.get('http://localhost:3000/api/images/sponsors');
       setSponsorImages(response.data);
     } catch (error) {
       console.error('Error fetching sponsor images:', error);
+      setError('Failed to load sponsors. Please try again later.');
+      
+      // Fallback: try the general images endpoint
+      try {
+        const fallbackResponse = await axios.get('http://localhost:3000/api/images');
+        setSponsorImages(fallbackResponse.data);
+      } catch (fallbackError) {
+        console.error('Fallback also failed:', fallbackError);
+      }
     } finally {
       setLoading(false);
     }
   };
 
-  const getSponsorName = (filename: string): string => {
-    const cleanName = filename
-      .replace(/\d+-/g, '') // Remove timestamp
-      .replace(/\.\w+$/, '') // Remove file extension
-      .replace(/-/g, ' ') // Replace hyphens with spaces
-      .toUpperCase(); // Convert to uppercase
+  // ✅ FIX: Add function to handle relative image URLs
+  const getImageUrl = (url: string): string => {
+    if (url.startsWith('http')) {
+      return url;
+    }
     
-    return cleanName;
+    // If it's a relative path, prepend the server URL
+    if (url.startsWith('/')) {
+      return `http://localhost:3000${url}`;
+    }
+    
+    // Default case
+    return url;
   };
 
-  if (loading) return <div>Loading sponsors...</div>;
+  const getSponsorName = (filename: string): string => {
+    const nameMap: { [key: string]: string } = {
+      'nike': 'Nike',
+      'gatorade': 'Gatorade',
+      'wilson': 'Wilson',
+      'baltimore': 'Baltimore City',
+    };
+
+    // Check for known sponsors first
+    const lowerFilename = filename.toLowerCase();
+    for (const [key, value] of Object.entries(nameMap)) {
+      if (lowerFilename.includes(key)) {
+        return value;
+      }
+    }
+
+    // Fallback: clean up the filename
+    const cleanName = filename
+      .replace(/\d+-/g, '')
+      .replace(/\.\w+$/, '')
+      .replace(/-/g, ' ')
+      .replace(/\b\w/g, l => l.toUpperCase())
+      .replace(/Logo/gi, '')
+      .trim();
+    
+    return cleanName || 'Sponsor';
+  };
+
+  if (loading) {
+    return (
+      <div style={{ padding: '40px', textAlign: 'center' }}>
+        <div style={{ fontSize: '18px', color: '#666' }}>Loading sponsors...</div>
+      </div>
+    );
+  }
+
+  if (error && sponsorImages.length === 0) {
+    return (
+      <div style={{ padding: '40px', textAlign: 'center' }}>
+        <div style={{ color: '#d32f2f', marginBottom: '20px' }}>{error}</div>
+        <button 
+          onClick={fetchSponsorImages}
+          style={{
+            padding: '10px 20px',
+            backgroundColor: '#1976d2',
+            color: 'white',
+            border: 'none',
+            borderRadius: '4px',
+            cursor: 'pointer'
+          }}
+        >
+          Try Again
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div style={{ padding: '40px', textAlign: 'center' }}>
@@ -46,7 +118,12 @@ function Sponsors() {
       <p>Thank you to our amazing sponsors who support our team:</p>
       
       {sponsorImages.length === 0 ? (
-        <p>No sponsor images found.</p>
+        <div style={{ padding: '40px', color: '#666' }}>
+          <p>No sponsor images found.</p>
+          <p style={{ fontSize: '14px', marginTop: '8px' }}>
+            Check if sponsor images exist in your database.
+          </p>
+        </div>
       ) : (
         <div style={{ 
           display: 'flex', 
@@ -60,12 +137,18 @@ function Sponsors() {
               key={image._id}
               style={{
                 padding: '20px',
-                textAlign: 'center'
+                textAlign: 'center',
+                border: '1px solid #e0e0e0',
+                borderRadius: '12px',
+                backgroundColor: 'white',
+                boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+                minWidth: '250px'
               }}
             >
+              {/* ✅ FIX: Use getImageUrl to handle relative paths */}
               <img 
-                src={image.url} 
-                alt="Sponsor logo"
+                src={getImageUrl(image.url)} 
+                alt={`${getSponsorName(image.filename)} logo`}
                 style={{
                   width: '200px',
                   height: '200px',
@@ -75,6 +158,18 @@ function Sponsors() {
                   backgroundColor: '#f5f5f5',
                   borderRadius: '8px'
                 }}
+                onError={(e) => {
+                  console.error('❌ Failed to load sponsor image:', image.url);
+                  // Try alternative approach
+                  const directUrl = image.url.replace('http://localhost:3000', '');
+                  if (e.currentTarget.src !== directUrl) {
+                    e.currentTarget.src = directUrl;
+                  } else {
+                    // Fallback to placeholder
+                    e.currentTarget.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgdmlld0JveD0iMCAwIDIwMCAyMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIyMDAiIGhlaWdodD0iMjAwIiBmaWxsPSIjRjVGNUY1Ii8+Cjx0ZXh0IHg9IjEwMCIgeT0iMTAwIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBkb21pbmFudC1iYXNlbGluZT0iY2VudHJhbCIgZmlsbD0iIzk5OSIgZm9udC1mYW1pbHk9IkFyaWFsLCBzYW5zLXNlcmlmIiBmb250LXNpemU9IjE0Ij5TcG9uc29yIExvZ288L3RleHQ+Cjwvc3ZnPg==';
+                  }
+                }}
+                onLoad={() => console.log('✅ Sponsor image loaded successfully')}
               />
               
               <h3 style={{ margin: '15px 0 5px 0' }}>
@@ -83,6 +178,10 @@ function Sponsors() {
               
               <p style={{ color: '#666', fontStyle: 'italic', margin: 0 }}>
                 Official Partner
+              </p>
+              
+              <p style={{ color: '#999', fontSize: '12px', margin: '5px 0 0 0' }}>
+                Added: {new Date(image.uploadDate).toLocaleDateString()}
               </p>
             </div>
           ))}

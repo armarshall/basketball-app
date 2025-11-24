@@ -1,3 +1,4 @@
+// server/src/controllers/team_controller.ts
 import { Request, Response } from "express";
 import mongoose from "mongoose";
 import Team from "../models/teams";
@@ -422,7 +423,7 @@ export const get_guardian_team = async (
   }
 };
 
-// Teenager joins team as player
+// Teenager joins team as player - FIXED VERSION
 export const join_team_as_player = async (
   req: Request,
   res: Response
@@ -430,46 +431,114 @@ export const join_team_as_player = async (
   try {
     const { teamId, teenagerId } = req.body;
 
+    console.log("🔍 Join as player request:", { teamId, teenagerId });
+
     if (!teamId || !teenagerId) {
+      console.log("❌ Missing teamId or teenagerId");
       res.status(400).json({ error: "teamId and teenagerId are required" });
+      return;
+    }
+
+    // Validate teamId format
+    if (!mongoose.Types.ObjectId.isValid(teamId)) {
+      console.log("❌ Invalid teamId format:", teamId);
+      res.status(400).json({ error: "Invalid team ID format" });
       return;
     }
 
     const team = await Team.findById(teamId);
     if (!team) {
+      console.log("❌ Team not found:", teamId);
       res.status(404).json({ error: "Team not found" });
       return;
     }
+
+    console.log("✅ Team found:", team.name);
 
     team.players = cleanPlayersArray(team.players);
 
     const Teenager = (await import("../models/teenagers")).default;
 
-    const teenager = await Teenager.findById(teenagerId);
-    if (!teenager) {
-      res.status(404).json({ error: "Teenager not found" });
+    // Validate teenagerId format
+    if (!mongoose.Types.ObjectId.isValid(teenagerId)) {
+      console.log("❌ Invalid teenagerId format:", teenagerId);
+      res.status(400).json({ error: "Invalid teenager ID format" });
       return;
     }
 
+    // Check if the ID belongs to a teenager (not a guardian)
+    const teenager = await Teenager.findById(teenagerId);
+    
+    // Check if it's actually a guardian trying to join as player
+    const GuardianModel = (await import("../models/guardians")).default;
+    const guardian = await GuardianModel.findById(teenagerId);
+
+    if (guardian) {
+      console.log("❌ User is a guardian, cannot join as player");
+      res.status(400).json({ 
+        error: "Guardians cannot join teams as players. Please join as a manager instead." 
+      });
+      return;
+    }
+
+    if (!teenager) {
+      console.log("❌ Teenager not found:", teenagerId);
+      res.status(404).json({ error: "Teenager not found. Only teenagers can join as players." });
+      return;
+    }
+
+    console.log("✅ Teenager found:", teenager.name);
+
+    // Check if teenager is already on a team
     if (teenager.teamId) {
+      console.log("❌ Teenager already on team:", teenager.teamId);
       res.status(409).json({ error: "You are already on a team" });
       return;
     }
 
-    team.players.push(new mongoose.Types.ObjectId(teenagerId));
-    const updatedTeam = await team.save();
+    // Check if teenager is already in this team's players array
+    const isAlreadyInTeam = team.players.some(
+      (playerId) => playerId.toString() === teenagerId
+    );
+    
+    if (isAlreadyInTeam) {
+      console.log("❌ Teenager already in this team");
+      res.status(409).json({ error: "You are already a member of this team" });
+      return;
+    }
 
+    // Add teenager to team and update teenager's teamId
+    team.players.push(new mongoose.Types.ObjectId(teenagerId));
     teenager.teamId = new mongoose.Types.ObjectId(teamId);
+
+    // Save both team and teenager
+    await team.save();
     await teenager.save();
+
+    console.log("✅ Successfully joined team");
+
+    // Return updated team with populated data
+    const updatedTeam = await Team.findById(teamId)
+      .populate("players")
+      .populate("managerId");
 
     res.json({
       message: "Successfully joined team!",
       team: updatedTeam,
-      teenager: teenager,
+      teenager: {
+        _id: teenager._id,
+        name: teenager.name,
+        email: teenager.email,
+        teamId: teenager.teamId
+      },
     });
-  } catch (err) {
-    console.error("Error in join_team_as_player:", err);
-    res.status(500).json({ error: "Internal server error" });
+  } catch (err: any) {
+    console.error("❌ Error in join_team_as_player:", err);
+    console.error("❌ Error details:", err.message);
+    res.status(500).json({ 
+      error: "Internal server error",
+      details: err.message 
+    });
   }
 };
 
@@ -532,6 +601,269 @@ export const debug_team_manager = async (
       teamName: team.name,
       managerId: team.managerId,
       managerIdString: team.managerId?.toString(),
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};
+
+// Update team settings
+export const update_team_settings = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  try {
+    const { teamId } = req.params;
+    const { settings, guardianId } = req.body;
+
+    if (!settings || !guardianId) {
+      res.status(400).json({ error: "settings and guardianId are required" });
+      return;
+    }
+
+    const team = await Team.findById(teamId);
+    if (!team) {
+      res.status(404).json({ error: "Team not found" });
+      return;
+    }
+
+    // Verify the user is the manager of this team
+    if (team.managerId?.toString() !== guardianId) {
+      res.status(403).json({ error: "You are not the manager of this team" });
+      return;
+    }
+
+    // Update team settings
+    if (!team.teamSettings) {
+      team.teamSettings = {};
+    }
+
+    // Update only the provided settings
+    team.teamSettings = {
+      ...team.teamSettings,
+      ...settings
+    };
+
+    await team.save();
+
+    const updatedTeam = await Team.findById(teamId).populate("players").populate("managerId");
+
+    res.json({
+      message: "Team settings updated successfully!",
+      team: updatedTeam
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};
+
+// Get team settings
+export const get_team_settings = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  try {
+    const { teamId } = req.params;
+    const { guardianId } = req.query;
+
+    if (!guardianId) {
+      res.status(400).json({ error: "guardianId is required" });
+      return;
+    }
+
+    const team = await Team.findById(teamId);
+    if (!team) {
+      res.status(404).json({ error: "Team not found" });
+      return;
+    }
+
+    // Verify the user is the manager of this team
+    if (team.managerId?.toString() !== guardianId) {
+      res.status(403).json({ error: "You are not the manager of this team" });
+      return;
+    }
+
+    res.json({
+      teamSettings: team.teamSettings || {}
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};
+
+// Send team invitation email
+export const send_team_invitation = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  try {
+    const { teamId } = req.params;
+    const { playerEmail, guardianId } = req.body;
+
+    if (!playerEmail || !guardianId) {
+      res.status(400).json({ error: "playerEmail and guardianId are required" });
+      return;
+    }
+
+    const team = await Team.findById(teamId);
+    if (!team) {
+      res.status(404).json({ error: "Team not found" });
+      return;
+    }
+
+    // Verify the user is the manager of this team
+    if (team.managerId?.toString() !== guardianId) {
+      res.status(403).json({ error: "You are not the manager of this team" });
+      return;
+    }
+
+    const guardian = await Guardian.findById(guardianId);
+    if (!guardian) {
+      res.status(404).json({ error: "Guardian not found" });
+      return;
+    }
+
+    // Import and use email service
+    const { sendTeamInvitation } = await import("../services/email_service");
+    
+    const emailSent = await sendTeamInvitation(
+      playerEmail,
+      team.name,
+      guardian.name,
+      teamId
+    );
+
+    if (emailSent) {
+      res.json({
+        message: "Team invitation sent successfully!",
+        sentTo: playerEmail
+      });
+    } else {
+      res.status(500).json({ error: "Failed to send invitation email" });
+    }
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};
+
+// Get team statistics
+export const get_team_statistics = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  try {
+    const { teamId } = req.params;
+
+    const team = await Team.findById(teamId).populate("players");
+    if (!team) {
+      res.status(404).json({ error: "Team not found" });
+      return;
+    }
+
+    const Teenager = (await import("../models/teenagers")).default;
+    
+    // Get detailed player stats
+    const playersWithStats = await Promise.all(
+      team.players.map(async (playerId) => {
+        const player = await Teenager.findById(playerId);
+        if (player && player.game_stats) {
+          const totalStats = player.game_stats.reduce((acc, game) => ({
+            points: acc.points + (game.statline?.points || 0),
+            rebounds: acc.rebounds + (game.statline?.rebounds || 0),
+            assists: acc.assists + (game.statline?.assists || 0),
+            steals: acc.steals + (game.statline?.steals || 0),
+            blocks: acc.blocks + (game.statline?.blocks || 0),
+            gamesPlayed: acc.gamesPlayed + 1
+          }), { points: 0, rebounds: 0, assists: 0, steals: 0, blocks: 0, gamesPlayed: 0 });
+
+          return {
+            playerId: player._id,
+            playerName: player.name,
+            ...totalStats,
+            averagePoints: totalStats.gamesPlayed > 0 ? (totalStats.points / totalStats.gamesPlayed).toFixed(1) : "0.0",
+            averageRebounds: totalStats.gamesPlayed > 0 ? (totalStats.rebounds / totalStats.gamesPlayed).toFixed(1) : "0.0",
+            averageAssists: totalStats.gamesPlayed > 0 ? (totalStats.assists / totalStats.gamesPlayed).toFixed(1) : "0.0"
+          };
+        }
+        return null;
+      })
+    );
+
+    const validPlayers = playersWithStats.filter(Boolean);
+
+    // Calculate team totals
+    const teamTotals = validPlayers.reduce((acc, player: any) => ({
+      totalPoints: acc.totalPoints + player.points,
+      totalRebounds: acc.totalRebounds + player.rebounds,
+      totalAssists: acc.totalAssists + player.assists,
+      totalSteals: acc.totalSteals + player.steals,
+      totalBlocks: acc.totalBlocks + player.blocks,
+      totalGames: acc.totalGames + player.gamesPlayed
+    }), { totalPoints: 0, totalRebounds: 0, totalAssists: 0, totalSteals: 0, totalBlocks: 0, totalGames: 0 });
+
+    res.json({
+      teamId: team._id,
+      teamName: team.name,
+      totalPlayers: team.players.length,
+      playerStatistics: validPlayers,
+      teamTotals,
+      averages: {
+        pointsPerGame: teamTotals.totalGames > 0 ? (teamTotals.totalPoints / teamTotals.totalGames).toFixed(1) : "0.0",
+        reboundsPerGame: teamTotals.totalGames > 0 ? (teamTotals.totalRebounds / teamTotals.totalGames).toFixed(1) : "0.0",
+        assistsPerGame: teamTotals.totalGames > 0 ? (teamTotals.totalAssists / teamTotals.totalGames).toFixed(1) : "0.0"
+      }
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};
+
+// Update team image
+export const update_team_image = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  try {
+    const { teamId } = req.params;
+    const { imageUrl, guardianId } = req.body;
+
+    if (!imageUrl || !guardianId) {
+      res.status(400).json({ error: "imageUrl and guardianId are required" });
+      return;
+    }
+
+    const team = await Team.findById(teamId);
+    if (!team) {
+      res.status(404).json({ error: "Team not found" });
+      return;
+    }
+
+    // Verify the user is the manager of this team
+    if (team.managerId?.toString() !== guardianId) {
+      res.status(403).json({ error: "You are not the manager of this team" });
+      return;
+    }
+
+    // Update team image
+    if (!team.teamSettings) {
+      team.teamSettings = {};
+    }
+
+    team.teamSettings.teamImage = imageUrl;
+    await team.save();
+
+    res.json({
+      message: "Team image updated successfully!",
+      team: {
+        id: team._id,
+        name: team.name,
+        teamImage: team.teamSettings.teamImage
+      }
     });
   } catch (error) {
     console.error(error);

@@ -21,6 +21,20 @@ export interface GameStats {
   statline: Statline; // decided to break this up for readability, also easier assignment
 }
 
+export interface ITeamSettings {
+  jerseyColor?: string;
+  primaryColor?: string;
+  secondaryColor?: string;
+  practiceDays?: string[];
+  practiceTime?: string;
+  maxPlayers?: number;
+  seasonStart?: Date;
+  seasonEnd?: Date;
+  contactEmail?: string;
+  contactPhone?: string;
+  teamImage?: string;
+}
+
 export interface ITeam {
   _id?: mongoose.Types.ObjectId;
   id?: string;
@@ -28,6 +42,7 @@ export interface ITeam {
   players: mongoose.Types.ObjectId[];
   is_teen_team: boolean;
   managerId?: mongoose.Types.ObjectId | null;
+  teamSettings?: ITeamSettings; // ✅ ADD THIS LINE
 }
 
 export interface IGuardian {
@@ -65,18 +80,16 @@ export interface IChild {
 
 export interface IMatch {
   id?: string;
-  team1_id: string;
-  team2_id: string;
+  team_ids: string [];
   start_date_time?: Date;
-  team1_score?: number[];
-  team2_score?: number[];
+  scores?: number[];
   winner_id?: string;
   round_id: string;
 }
 
 export interface IRound {
   id?: string;
-  match_ids?: string[];
+  matches: IMatch[];
   tournament_id: string;
 }
 
@@ -84,7 +97,7 @@ export interface ITournament {
   id?: string;
   start_date_time: Date;
   is_teen_tournament: boolean;
-  round_ids?: string[];
+  round_ids?: string[]; // This line might be missing in your actual file
 }
 
 export interface IImage extends mongoose.Document {

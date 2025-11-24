@@ -1,422 +1,395 @@
+// components/TeamSelection.tsx
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom"; // ADD THIS IMPORT
 import axios from "axios";
 import { get_user_data } from "../services/session_service";
+import TeamOverviewModal from "../components/TeamOverviewModal";
 
 interface Team {
   _id: string;
   name: string;
-  players: string[];
-  is_teen_team: boolean;
-  managerId?: string;
-}
-
-interface User {
-  _id?: string;
-  id?: string;
-  name: string;
-  email: string;
-  isManager?: boolean;
-  managedTeamId?: string;
-  teamId?: string;
-  type: "guardian" | "teen";
+  managerId: string;
+  managerName: string;
+  playerCount: number;
+  maxPlayers: number;
+  primaryColor?: string;
+  jerseyColor?: string;
+  teamImage?: string;
 }
 
 export default function TeamSelection() {
+  const navigate = useNavigate(); // ADD THIS HOOK
   const [teams, setTeams] = useState<Team[]>([]);
-  const [currentUser, setCurrentUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState<{ [teamId: string]: boolean }>({});
+  const [loading, setLoading] = useState(true);
+  const [currentUser, setCurrentUser] = useState<any>(null);
+  const [selectedTeamId, setSelectedTeamId] = useState<string | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [joiningTeam, setJoiningTeam] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
-  // Load user data and teams on component mount
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const userData = get_user_data();
-        if (userData) {
-          const parsedUser = JSON.parse(userData);
-          setCurrentUser(parsedUser);
-        }
-
-        const teamsRes = await axios.get<Team[]>(
-          "http://localhost:3000/api/teams"
-        );
-        setTeams(teamsRes.data);
-      } catch (err) {
-        console.error("Error fetching data:", err);
-      }
-    };
-    fetchData();
-  }, []);
-
-  // Handle session changes across browser tabs
-  useEffect(() => {
-    const handleStorageChange = () => {
+    const initialize = async () => {
       const userData = get_user_data();
-      setCurrentUser(userData ? JSON.parse(userData) : null);
+      if (userData) {
+        const user = JSON.parse(userData);
+        setCurrentUser(user);
+      }
+      await fetchTeams();
     };
-    window.addEventListener("storage", handleStorageChange);
-    return () => window.removeEventListener("storage", handleStorageChange);
+    initialize();
   }, []);
 
-  // Join or leave team as manager
-  const updateTeamManager = async (url: string, teamId: string) => {
-    if (!currentUser) {
-      alert("Please log in first.");
-      return;
-    }
-
-    const guardianId = currentUser._id || currentUser.id;
-    if (!guardianId) {
-      alert("Error: User ID not found. Please log in again.");
-      return;
-    }
-
-    setLoading((prev) => ({ ...prev, [teamId]: true }));
-
+  const fetchTeams = async () => {
     try {
-      const res = await axios.post(url, {
-        teamId: teamId,
-        guardianId: guardianId,
-      });
-
-      alert(res.data.message);
-      sessionStorage.setItem(
-        "user",
-        JSON.stringify({ ...res.data.guardian, type: "guardian" })
-      );
-      setCurrentUser({ ...res.data.guardian, type: "guardian" });
-
-      const teamsRes = await axios.get<Team[]>(
-        "http://localhost:3000/api/teams"
-      );
-      setTeams(teamsRes.data);
+      const res = await axios.get("http://localhost:3000/api/teams");
+      setTeams(res.data);
     } catch (err: any) {
-      console.error("Error updating team manager:", err);
-      alert(err?.response?.data?.error || err.message);
+      console.error("Error fetching teams:", err);
+      setError("Error loading teams");
     } finally {
-      setLoading((prev) => ({ ...prev, [teamId]: false }));
+      setLoading(false);
     }
   };
 
-  // Join team as player
-  const handleJoinAsPlayer = async (teamId: string) => {
+  const handleTeamClick = (teamId: string) => {
+    setSelectedTeamId(teamId);
+    setIsModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setSelectedTeamId(null);
+  };
+
+  const handleJoinTeam = async (teamId: string) => {
     if (!currentUser) {
-      alert("Please log in first.");
+      alert("Please log in to join a team");
       return;
     }
 
-    const teenagerId = currentUser._id || currentUser.id;
-    if (!teenagerId) {
-      alert("Error: User ID not found. Please log in again.");
-      return;
-    }
-
-    setLoading((prev) => ({ ...prev, [teamId]: true }));
-
+    setJoiningTeam(teamId);
     try {
-      const res = await axios.post(
-        "http://localhost:3000/api/teams/join-as-player",
-        {
-          teamId,
-          teenagerId: teenagerId,
-        }
-      );
-
-      alert(res.data.message);
-
-      const updatedTeenager = res.data.teenager;
-      sessionStorage.setItem(
-        "user",
-        JSON.stringify({
-          ...updatedTeenager,
-          type: "teen",
-          teamId: updatedTeenager.teamId,
-        })
-      );
-
-      setCurrentUser({
-        ...updatedTeenager,
-        type: "teen",
-        teamId: updatedTeenager.teamId,
+      const res = await axios.post(`http://localhost:3000/api/teams/${teamId}/join`, {
+        playerId: currentUser._id || currentUser.id
       });
 
-      const teamsRes = await axios.get("http://localhost:3000/api/teams");
-      setTeams(teamsRes.data);
+      alert("Successfully joined the team!");
+      await fetchTeams(); // Refresh the team list
     } catch (err: any) {
-      console.error("Error joining team as player:", err);
-      alert(err?.response?.data?.error || err.message);
+      console.error("Error joining team:", err);
+      alert(err?.response?.data?.error || "Error joining team");
     } finally {
-      setLoading((prev) => ({ ...prev, [teamId]: false }));
+      setJoiningTeam(null);
     }
   };
 
-  const handleJoinAsManager = (teamId: string) =>
-    updateTeamManager(
-      "http://localhost:3000/api/teams/join-as-manager",
-      teamId
-    );
+  // FIXED: Navigation handler
+  const handleCreateTeam = () => {
+    navigate("/teamcreate");
+  };
 
-  const handleLeaveAsManager = (teamId: string) =>
-    updateTeamManager(
-      "http://localhost:3000/api/teams/leave-as-manager",
-      teamId
-    );
-
-  // Check if user manages this team
-  const isTeamManager = (team: Team) => {
+  const canJoinTeam = (team: Team) => {
     if (!currentUser) return false;
-    const userId = currentUser._id || currentUser.id;
-    return team.managerId === userId;
+    if (currentUser.role !== 'teenager') return false;
+    if (team.playerCount >= team.maxPlayers) return false;
+    return true;
   };
 
-  // Check if user is on this team
-  const isOnTeam = (team: Team) => {
-    if (!currentUser || !team.players || !Array.isArray(team.players))
-      return false;
-    const userId = currentUser._id || currentUser.id;
-    if (!userId) return false;
-    return team.players.includes(userId);
-  };
-
-  // Check if user manages any team
-  const isManagingAnyTeam =
-    currentUser && currentUser.type === "guardian"
-      ? teams.some((t) => {
-          const userId = currentUser._id || currentUser.id;
-          return t.managerId === userId;
-        })
-      : false;
-
-  // Check if user is on any team
-  const isOnAnyTeam =
-    currentUser && currentUser.type === "teen" ? !!currentUser.teamId : false;
+  if (loading) {
+    return (
+      <div style={{ padding: 20, textAlign: "center" }}>
+        <h2>Loading teams...</h2>
+      </div>
+    );
+  }
 
   return (
-    <div
-      style={{
-        display: "flex",
-        flexDirection: "column",
-        gap: 16,
-        padding: "0 20px",
-        marginTop: 20,
-      }}
-    >
-      {/* Current User Info */}
-      {currentUser ? (
-        <div
-          style={{
-            padding: 16,
-            backgroundColor: "#f5f5f5",
-            borderRadius: 8,
-            marginBottom: 16,
-          }}
-        >
-          <h3>Current User</h3>
-          <p>
-            <strong>Name:</strong> {currentUser.name}
+    <div style={{ padding: 20, maxWidth: 1200, margin: "0 auto" }}>
+      <div style={{ textAlign: "center", marginBottom: 40 }}>
+        <h1>Browse Teams</h1>
+        <p style={{ color: "#666", fontSize: 18 }}>
+          {currentUser ? `Welcome, ${currentUser.name}!` : "Browse available teams to join"}
+        </p>
+        {!currentUser && (
+          <p style={{ color: "#dc2626", marginTop: 10 }}>
+            Please log in to join a team
           </p>
-          <p>
-            <strong>Email:</strong> {currentUser.email}
-          </p>
-          <p>
-            <strong>Type:</strong> {currentUser.type}
-          </p>
-          <p>
-            <strong>Status:</strong>
-            {currentUser.type === "teen"
-              ? isOnAnyTeam
-                ? "Team Player"
-                : "Teen - Not on a Team"
-              : isManagingAnyTeam
-              ? "Manager of a team"
-              : "Guardian - Available to Manage"}
-          </p>
-          {currentUser.managedTeamId && (
-            <p>
-              <strong>Managed Team ID:</strong> {currentUser.managedTeamId}
-            </p>
-          )}
-        </div>
-      ) : (
-        <div
-          style={{
-            padding: 16,
-            backgroundColor: "#fff3cd",
-            border: "1px solid #ffeaa7",
-            borderRadius: 8,
-          }}
-        >
-          <h3>Current User</h3>
-          <p>Status: Not signed in</p>
-          <p>
-            <a href="/login" style={{ color: "#007bff" }}>
-              Sign in to join teams
-            </a>
-          </p>
+        )}
+      </div>
+
+      {error && (
+        <div style={{ 
+          padding: 15, 
+          backgroundColor: "#f8d7da", 
+          color: "#721c24", 
+          border: "1px solid #f5c6cb",
+          borderRadius: 4,
+          marginBottom: 20
+        }}>
+          {error}
         </div>
       )}
 
-      {/* Teams List */}
-      <h2>Available Teams</h2>
-      {teams.length === 0 && <p>No teams available.</p>}
-
-      {teams.map((team) => {
-        const isManager = isTeamManager(team);
-        const isPlayer = isOnTeam(team);
-        const hasManager = !!team.managerId;
-        const isLoading = loading[team._id];
-
-        return (
-          <div
-            key={team._id}
-            style={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-              padding: 20,
-              border: "1px solid #ddd",
-              borderRadius: 8,
-              backgroundColor: isManager
-                ? "#f0f8ff"
-                : isPlayer
-                ? "#f0fff0"
-                : "white",
-              gap: 20,
-            }}
-          >
-            <div style={{ flex: 1 }}>
-              <span
-                style={{
-                  fontWeight: "bold",
-                  fontSize: 18,
-                  display: "block",
-                  marginBottom: 8,
-                }}
-              >
-                {team.name}
-              </span>
-              <div style={{ fontSize: 14, color: "#666" }}>
-                <div>Players: {(team.players && team.players.length) || 0}</div>
-                <div>
-                  Type: {team.is_teen_team ? "Teen Team" : "Children Team"}
-                </div>
-                <div>
-                  Manager:{" "}
-                  {hasManager
-                    ? isManager
-                      ? "You"
-                      : "A Guardian"
-                    : "None - Available"}
-                </div>
-                {isManager && (
-                  <div style={{ color: "green", fontWeight: "bold" }}>
-                    You manage this team
-                  </div>
-                )}
-                {isPlayer && (
-                  <div style={{ color: "blue", fontWeight: "bold" }}>
-                    You play on this team
-                  </div>
-                )}
-              </div>
-            </div>
-
-            <div
+      {teams.length === 0 ? (
+        <div style={{ textAlign: "center", padding: 40, color: "#666" }}>
+          <h3>No teams available</h3>
+          <p>Check back later or create your own team!</p>
+          {currentUser?.role === 'guardian' && (
+            <button
+              onClick={handleCreateTeam} // FIXED: Use navigation handler
               style={{
-                display: "flex",
-                flexDirection: "column",
-                gap: 10,
-                minWidth: 200,
+                padding: "12px 24px",
+                backgroundColor: "#007bff",
+                color: "white",
+                border: "none",
+                borderRadius: 6,
+                cursor: "pointer",
+                fontSize: 16,
+                marginTop: 20
               }}
             >
-              {/* View Team button - always shown */}
-              <button
-                onClick={() =>
-                  (window.location.href = `/teams/${encodeURIComponent(
-                    team.name.toLowerCase()
-                  )}`)
-                }
+              Create a Team
+            </button>
+          )}
+        </div>
+      ) : (
+        <div style={{ 
+          display: "grid", 
+          gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))", 
+          gap: 20 
+        }}>
+          {teams.map(team => (
+            <div 
+              key={team._id}
+              style={{
+                border: "1px solid #e2e8f0",
+                borderRadius: 12,
+                padding: 24,
+                backgroundColor: "white",
+                boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
+                transition: "all 0.2s ease",
+                cursor: "pointer",
+                position: "relative",
+                overflow: "hidden"
+              }}
+              onClick={() => handleTeamClick(team._id)}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.transform = "translateY(-4px)";
+                e.currentTarget.style.boxShadow = "0 8px 25px rgba(0,0,0,0.15)";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = "translateY(0)";
+                e.currentTarget.style.boxShadow = "0 2px 8px rgba(0,0,0,0.1)";
+              }}
+            >
+              {/* Color accent */}
+              <div 
                 style={{
-                  padding: "10px 20px",
-                  fontSize: 16,
-                  backgroundColor: "#007bff",
-                  color: "white",
-                  border: "none",
-                  borderRadius: 4,
-                  cursor: "pointer",
-                  width: "100%",
+                  position: "absolute",
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  height: 4,
+                  backgroundColor: team.primaryColor || "#1e40af"
                 }}
-              >
-                View Team
-              </button>
+              />
 
-              {/* Leave as Manager button - only for managers */}
-              {isManager && (
-                <button
-                  onClick={() => handleLeaveAsManager(team._id)}
-                  disabled={isLoading}
-                  style={{
-                    padding: "10px 20px",
-                    fontSize: 16,
-                    backgroundColor: "#dc3545",
-                    color: "white",
-                    border: "none",
-                    borderRadius: 4,
-                    cursor: isLoading ? "not-allowed" : "pointer",
-                    opacity: isLoading ? 0.6 : 1,
-                    width: "100%",
-                  }}
-                >
-                  {isLoading ? "Leaving..." : "Leave as Manager"}
-                </button>
-              )}
-
-              {/* Join as Manager button - only for guardians not managing any team */}
-              {currentUser?.type === "guardian" &&
-                !isManagingAnyTeam &&
-                !hasManager && (
-                  <button
-                    onClick={() => handleJoinAsManager(team._id)}
-                    disabled={isLoading}
+              {/* Team Header */}
+              <div style={{ display: "flex", alignItems: "flex-start", gap: 16, marginBottom: 16 }}>
+                {team.teamImage && (
+                  <img 
+                    src={team.teamImage.startsWith('http') ? team.teamImage : `http://localhost:3000${team.teamImage}`}
+                    alt={`${team.name} team image`}
                     style={{
-                      padding: "10px 20px",
-                      fontSize: 16,
-                      backgroundColor: "#28a745",
-                      color: "white",
-                      border: "none",
-                      borderRadius: 4,
-                      cursor: isLoading ? "not-allowed" : "pointer",
-                      opacity: isLoading ? 0.6 : 1,
-                      width: "100%",
+                      width: 60,
+                      height: 60,
+                      borderRadius: 8,
+                      objectFit: "cover",
+                      border: `2px solid ${team.primaryColor || "#1e40af"}`,
+                      backgroundColor: "#f5f5f5"
+                    }}
+                    onError={(e) => {
+                      e.currentTarget.style.display = 'none';
+                    }}
+                  />
+                )}
+                <div style={{ flex: 1 }}>
+                  <h3 
+                    style={{
+                      margin: "0 0 8px 0",
+                      color: team.primaryColor || "#1e40af",
+                      fontSize: "20px",
+                      fontWeight: "600",
+                      textDecoration: "underline"
                     }}
                   >
-                    {isLoading ? "Joining..." : "Join as Manager"}
-                  </button>
-                )}
+                    {team.name}
+                  </h3>
+                  <p style={{ margin: "4px 0", color: "#64748b", fontSize: "14px" }}>
+                    👤 Managed by {team.managerName}
+                  </p>
+                </div>
+              </div>
 
-              {/* Join as Player button - only for teens not on any team */}
-              {currentUser?.type === "teen" && !isOnAnyTeam && !isPlayer && (
+              {/* Team Info */}
+              <div style={{ marginBottom: 20 }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
+                  <span style={{ color: "#475569", fontWeight: "500" }}>Players:</span>
+                  <span style={{ 
+                    color: team.playerCount >= team.maxPlayers ? "#dc2626" : "#059669",
+                    fontWeight: "600" 
+                  }}>
+                    {team.playerCount} / {team.maxPlayers}
+                  </span>
+                </div>
+
+                {/* Team Colors Preview */}
+                <div style={{ display: "flex", gap: 8, alignItems: "center", marginBottom: 16 }}>
+                  <span style={{ color: "#475569", fontSize: "14px", fontWeight: "500" }}>Colors:</span>
+                  <div style={{ display: "flex", gap: 6 }}>
+                    {team.jerseyColor && (
+                      <div 
+                        style={{
+                          width: 20,
+                          height: 20,
+                          backgroundColor: team.jerseyColor,
+                          borderRadius: "50%",
+                          border: "2px solid #fff",
+                          boxShadow: "0 1px 3px rgba(0,0,0,0.2)"
+                        }}
+                        title="Jersey Color"
+                      />
+                    )}
+                    {team.primaryColor && (
+                      <div 
+                        style={{
+                          width: 20,
+                          height: 20,
+                          backgroundColor: team.primaryColor,
+                          borderRadius: "50%",
+                          border: "2px solid #fff",
+                          boxShadow: "0 1px 3px rgba(0,0,0,0.2)"
+                        }}
+                        title="Primary Color"
+                      />
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Join Button */}
+              {canJoinTeam(team) && (
                 <button
-                  onClick={() => handleJoinAsPlayer(team._id)}
-                  disabled={isLoading}
+                  onClick={(e) => {
+                    e.stopPropagation(); // Prevent triggering team click
+                    handleJoinTeam(team._id);
+                  }}
+                  disabled={joiningTeam === team._id || team.playerCount >= team.maxPlayers}
                   style={{
-                    padding: "10px 20px",
-                    fontSize: 16,
-                    backgroundColor: "#28a745",
+                    width: "100%",
+                    padding: "12px 16px",
+                    backgroundColor: team.playerCount >= team.maxPlayers ? "#9ca3af" : 
+                                   joiningTeam === team._id ? "#6b7280" : "#10b981",
                     color: "white",
                     border: "none",
-                    borderRadius: 4,
-                    cursor: isLoading ? "not-allowed" : "pointer",
-                    opacity: isLoading ? 0.6 : 1,
-                    width: "100%",
+                    borderRadius: 6,
+                    cursor: team.playerCount >= team.maxPlayers ? "not-allowed" : 
+                           joiningTeam === team._id ? "not-allowed" : "pointer",
+                    fontSize: "14px",
+                    fontWeight: "600",
+                    transition: "all 0.2s ease"
+                  }}
+                  onMouseEnter={(e) => {
+                    if (!team.playerCount >= team.maxPlayers && joiningTeam !== team._id) {
+                      e.currentTarget.style.backgroundColor = "#059669";
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    if (!team.playerCount >= team.maxPlayers && joiningTeam !== team._id) {
+                      e.currentTarget.style.backgroundColor = "#10b981";
+                    }
                   }}
                 >
-                  {isLoading ? "Joining..." : "Join as Player"}
+                  {team.playerCount >= team.maxPlayers ? "Team Full" :
+                   joiningTeam === team._id ? "Joining..." : "Join Team"}
                 </button>
               )}
+
+              {currentUser?.role !== 'teenager' && currentUser && (
+                <div style={{ 
+                  padding: "8px 12px", 
+                  backgroundColor: "#f3f4f6", 
+                  borderRadius: 4,
+                  textAlign: "center",
+                  fontSize: "12px",
+                  color: "#6b7280"
+                }}>
+                  {currentUser.role === 'guardian' ? 'Managers cannot join teams' : 'Please log in as a teenager to join'}
+                </div>
+              )}
+
+              {/* Click hint */}
+              <div style={{ 
+                textAlign: "center", 
+                marginTop: 12,
+                paddingTop: 12,
+                borderTop: "1px solid #f1f5f9"
+              }}>
+                <span style={{ color: "#94a3b8", fontSize: "12px" }}>
+                  Click for team details
+                </span>
+              </div>
             </div>
-          </div>
-        );
-      })}
+          ))}
+        </div>
+      )}
+
+      {/* Team Overview Modal */}
+      <TeamOverviewModal 
+        teamId={selectedTeamId || ""}
+        isOpen={isModalOpen}
+        onClose={handleCloseModal}
+        currentUserId={currentUser?._id || currentUser?.id} // ADD THIS PROP
+      />
+
+      {/* Create Team CTA for Guardians */}
+      {currentUser?.role === 'guardian' && (
+        <div style={{ 
+          textAlign: "center", 
+          marginTop: 40, 
+          padding: 30,
+          backgroundColor: "#f8fafc",
+          borderRadius: 12,
+          border: "2px dashed #cbd5e1"
+        }}>
+          <h3 style={{ margin: "0 0 12px 0", color: "#374151" }}>Don't see a team you like?</h3>
+          <p style={{ color: "#64748b", marginBottom: 20 }}>
+            Create your own team and start managing!
+          </p>
+          <button
+            onClick={handleCreateTeam} // FIXED: Use navigation handler
+            style={{
+              padding: "12px 24px",
+              backgroundColor: "#007bff",
+              color: "white",
+              border: "none",
+              borderRadius: 6,
+              cursor: "pointer",
+              fontSize: 16,
+              fontWeight: "600",
+              transition: "background-color 0.2s"
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.backgroundColor = "#0056b3";
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.backgroundColor = "#007bff";
+            }}
+          >
+            Create Your Team
+          </button>
+        </div>
+      )}
     </div>
   );
 }
