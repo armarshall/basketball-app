@@ -1,12 +1,10 @@
-import mongoose from "mongoose";
-
 export interface ITeam {
-  _id?: mongoose.Types.ObjectId;
+  _id?: string;
   id?: string;
   name: string;
-  players: mongoose.Types.ObjectId[];
+  players: string[];
   is_teen_team: boolean;
-  managerId?: mongoose.Types.ObjectId | null;
+  managerId?: string | null;
   teamSettings?: TeamSettings;
 }
 
@@ -25,7 +23,7 @@ export interface TeamSettings {
 }
 
 export interface IGuardian {
-  _id?: mongoose.Types.ObjectId;
+  _id?: string;
   id?: string;
   name: string;
   dateOfBirth: Date;
@@ -34,17 +32,17 @@ export interface IGuardian {
   childId?: string;
   isManager?: boolean;
   isAdmin?: boolean; // Add this line if you need admin
-  managedTeamId?: mongoose.Types.ObjectId | null;
+  managedTeamId?: string | null;
 }
 
 export interface ITeenager {
-  _id?: mongoose.Types.ObjectId;
+  _id?: string;
   id?: string;
   name: string;
   dateOfBirth: Date;
   email: string;
   password: string;
-  teamId?: mongoose.Types.ObjectId | null;
+  teamId?: string;
   game_stats?: GameStats[]; // Add this line
 }
 
@@ -53,14 +51,22 @@ export interface GameStats {
   statline: Statline;
   date: Date;
 }
+
 export interface Statline {
   points: number;
   rebounds: number;
   assists: number;
-  steals: number;
   blocks: number;
+  steals: number;
   turnovers: number;
+  field_goals_made: number;
+  field_goals_attempted: number;
+  three_pointers_made: number;
+  three_pointers_attempted: number;
+  personal_fouls: number;
+  minutes: number;
 }
+
 export interface IChild {
   id: string;
   name: string;
@@ -71,10 +77,14 @@ export interface IChild {
 }
 
 export interface IMatch {
-  team_ids: string[];
+  id?: string;
+  team1_id: string;
+  team2_id: string;
   start_date_time?: Date;
-  scores?: number[];
+  team1_score?: number[];
+  team2_score?: number[];
   winner_id?: string;
+  round_id: string;
 }
 
 export interface IRound {
@@ -88,7 +98,7 @@ export interface ITournament {
   rounds: IRound[];
 }
 
-export interface IImage extends mongoose.Document {
+export interface IImage {
   filename: string;
   url: string;
   uploadDate: Date;

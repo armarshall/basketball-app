@@ -21,7 +21,7 @@ const EventsTable: React.FC = () => {
   const [teams, setTeams] = useState<{ [key: string]: ITeam }>({});
   const [selectedMatch, setSelectedMatch] = useState<IMatch | null>(null);
   const [isEditorOpen, setIsEditorOpen] = useState(false);
-  const [isAddEventOpen, setIsAddEventOpen] = useState(false);
+  const [_isAddEventOpen, setIsAddEventOpen] = useState(false);
 
   useEffect(() => {
     const fetchMatches = async () => {
@@ -48,7 +48,7 @@ const EventsTable: React.FC = () => {
         const fetchedTeams: ITeam[] = await Promise.all(teamPromises);
         const teamsMap: { [key: string]: ITeam } = {};
         fetchedTeams.forEach((team) => {
-          teamsMap[team.id] = team;
+          teamsMap[team.id!] = team;
         });
         setTeams(teamsMap);
       } catch (error) {
@@ -170,7 +170,7 @@ const EventsTable: React.FC = () => {
                   <Button
                     variant="contained"
                     style={{ backgroundColor: "#F08080", marginLeft: "5px" }}
-                    onClick={() => handleDeleteClick(match.id)}
+                    onClick={() => handleDeleteClick(match.id!)}
                   >
                     Delete
                   </Button>
@@ -199,7 +199,7 @@ const EventsTable: React.FC = () => {
               selectedMatch || {
                 team1_id: "",
                 team2_id: "",
-                start_date_time: "",
+                start_date_time: new Date(),
                 round_id: "",
               }
             }
