@@ -84,7 +84,7 @@ export const delete_game_event_by_id = async (req: Request, res: Response) => {
     match.markModified("game_events");
 
     const saved_match = await match.save();
-    return res.json(saved_match);
+    return res.json(saved_match.game_events);
   } catch (err) {
     console.error(err);
     return res.status(500).json({ error: "internal server error" });

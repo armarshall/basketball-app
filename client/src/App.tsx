@@ -17,8 +17,9 @@ import { StatsViewerPage } from "./pages/StatsViewerTestPage";
 import { StatsEditorPage } from "./pages/StatsEditorTestPage";
 import TeamSelection from "./components/TeamSelection";
 import ManagerProfile from "./components/ManagerProfile";
-import TeamSettings from "./pages/TeamSettings"; 
+import TeamSettings from "./pages/TeamSettings";
 import TeamDetails from "./pages/TeamDetails"; // ADD THIS IMPORT
+import { LiveGameEventsPage } from "./pages/LiveGameEvents";
 
 function App() {
   return (
@@ -27,13 +28,13 @@ function App() {
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/rules" element={<Rules />} />
-        
+
         {/* Team Routes - ADD THIS ROUTE */}
         <Route path="/team/:id" element={<TeamDetails />} />
-        
+
         <Route path="/team/:id/settings" element={<TeamSettings />} />
         <Route path="/team" element={<Team />} />
-        
+
         <Route path="/standings" element={<Standings />} />
         <Route path="/about" element={<About />} />
         <Route path="/signup" element={<SignUp />} />
@@ -43,15 +44,16 @@ function App() {
         <Route path="/teamcreate" element={<TeamCreation />} />
         <Route path="/sponsors" element={<Sponsors />} />
         <Route path="/upload" element={<ImageUpload />} />
-        
+
         <Route path="/teams" element={<TeamSelection />} />
         <Route path="/manager-profile" element={<ManagerProfile />} />
-        
+
         {/* Remove duplicate route */}
         {/* <Route path="/team-settings/:id" element={<TeamSettings />} /> */}
-        
+
         <Route path="/stats-test" element={<StatsViewerPage />} />
         <Route path="/stats-update" element={<StatsEditorPage />} />
+        <Route path="/live-game-events" element={<LiveGameEventsPage />} />
 
         <Route path="*" element={<div>Page not found</div>} />
       </Routes>
