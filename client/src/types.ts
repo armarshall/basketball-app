@@ -8,6 +8,13 @@ export interface ITeam {
   teamSettings?: TeamSettings;
 }
 
+export interface GameEvent {
+  player_origin_id: string; // the player that did the thing
+  action: string; // the thing the player did (blocked, scored, shot attempt, etc)
+  player_target_id: string; // the player the origin targeted (i.e. player_origin_id blocked player_target_id) (can be empty)
+  count: number; // the amount (i.e. player_origin_id scored 3)
+}
+
 export interface TeamSettings {
   jerseyColor: string;
   primaryColor: string;

@@ -12,6 +12,7 @@ import imageRouter from "./routes/imageRoutes";
 import rulesRouter from "./routes/rules_router";
 import roundRouter from "./routes/round_router";
 import matchRouter from "./routes/match_router";
+import eventRouter from "./routes/live_game_info";
 
 const app = express();
 app.use(cors());
@@ -35,6 +36,7 @@ app.use("/api/images", imageRouter);
 app.use("/api/rules", rulesRouter);
 app.use("/api/rounds", roundRouter);
 app.use("/api/matches", matchRouter);
+app.use("/api/game_events", eventRouter);
 
 // Serve uploaded files statically
 app.use("/uploads", express.static("uploads"));

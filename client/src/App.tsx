@@ -20,6 +20,7 @@ import ManagerProfile from "./components/ManagerProfile";
 import TeamSettings from "./pages/TeamSettings";
 import AdminEvents from "./pages/AdminEvents";
 import TeamDetails from "./pages/TeamDetails"; // ADD THIS IMPORT
+import { LiveGameEventsPage } from "./pages/LiveGameEvents";
 
 function App() {
   return (
@@ -54,6 +55,7 @@ function App() {
 
         <Route path="/stats-test" element={<StatsViewerPage />} />
         <Route path="/stats-update" element={<StatsEditorPage />} />
+        <Route path="/live-game-events" element={<LiveGameEventsPage />} />
 
         <Route path="*" element={<div>Page not found</div>} />
       </Routes>
