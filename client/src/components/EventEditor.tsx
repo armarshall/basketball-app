@@ -23,7 +23,19 @@ const EventEditor: React.FC<EventEditorProps> = ({
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setEditedEvent({ ...editedEvent, [name]: value });
+    if (name === "team1_id") {
+      setEditedEvent({
+        ...editedEvent,
+        team_ids: [value, editedEvent.team_ids ? editedEvent.team_ids[1] : ""],
+      });
+    } else if (name === "team2_id") {
+      setEditedEvent({
+        ...editedEvent,
+        team_ids: [editedEvent.team_ids ? editedEvent.team_ids[0] : "", value],
+      });
+    } else {
+      setEditedEvent({ ...editedEvent, [name]: value });
+    }
   };
 
   const handleSave = () => {
@@ -37,7 +49,7 @@ const EventEditor: React.FC<EventEditorProps> = ({
         margin="normal"
         label="Team 1 ID"
         name="team1_id"
-        value={editedEvent.team1_id || ""}
+        value={editedEvent.team_ids ? editedEvent.team_ids[0] || "" : ""}
         onChange={handleInputChange}
       />
       <TextField
@@ -45,7 +57,7 @@ const EventEditor: React.FC<EventEditorProps> = ({
         margin="normal"
         label="Team 2 ID"
         name="team2_id"
-        value={editedEvent.team2_id || ""}
+        value={editedEvent.team_ids ? editedEvent.team_ids[1] || "" : ""}
         onChange={handleInputChange}
       />
       <TextField
@@ -61,14 +73,6 @@ const EventEditor: React.FC<EventEditorProps> = ({
         onChange={handleInputChange}
         type="datetime-local"
         InputLabelProps={{ shrink: true }}
-      />
-      <TextField
-        fullWidth
-        margin="normal"
-        label="Round ID"
-        name="round_id"
-        value={editedEvent.round_id || ""}
-        onChange={handleInputChange}
       />
       <Box
         sx={{ display: "flex", justifyContent: "space-between", marginTop: 2 }}

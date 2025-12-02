@@ -6,11 +6,11 @@ const matchSchema = new mongoose.Schema<IMatch>({
   start_date_time: { type: Date, required: false },
   scores: { type: [Number], required: false },
   winner_id: { type: String, required: false },
-  round_id: { type: String, required: true },
+  round_id: { type: String, required: false },
 });
 
 matchSchema.set("toJSON", {
-  transform: (_document, returnedObject: any) => { // ✅ FIX: Add 'any' type
+  transform: (_document, returnedObject: any) => {
     returnedObject.id = returnedObject._id.toString();
     delete returnedObject._id;
     delete returnedObject.__v;

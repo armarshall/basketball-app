@@ -85,7 +85,7 @@ export interface IMatch {
   start_date_time?: Date;
   scores?: number[];
   winner_id?: string;
-  round_id: string;
+  round_id?: string;
 }
 
 export interface IRound {

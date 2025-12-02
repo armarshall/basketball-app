@@ -34,8 +34,10 @@ const EventsTable: React.FC = () => {
 
         const teamIds = new Set<string>();
         fetchedMatches.forEach((match) => {
-          teamIds.add(match.team1_id);
-          teamIds.add(match.team2_id);
+          if (match.team_ids) {
+            teamIds.add(match.team_ids[0]);
+            teamIds.add(match.team_ids[1]);
+          }
         });
 
         const teamPromises = Array.from(teamIds).map(async (teamId) => {
@@ -144,10 +146,10 @@ const EventsTable: React.FC = () => {
             {matches.map((match) => (
               <TableRow key={match.id}>
                 <TableCell align="left">
-                  {teams[match.team1_id]?.name || "Loading..."}
+                  {teams[match.team_ids[0]]?.name || "Loading..."}
                 </TableCell>
                 <TableCell align="left">
-                  {teams[match.team2_id]?.name || "Loading..."}
+                  {teams[match.team_ids[1]]?.name || "Loading..."}
                 </TableCell>
                 <TableCell align="left">
                   {match.start_date_time
@@ -197,10 +199,8 @@ const EventsTable: React.FC = () => {
           <EventEditor
             event={
               selectedMatch || {
-                team1_id: "",
-                team2_id: "",
+                team_ids: ["", ""],
                 start_date_time: new Date(),
-                round_id: "",
               }
             }
             onSave={handleSave}
