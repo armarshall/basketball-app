@@ -78,12 +78,20 @@ export interface IChild {
   game_stats?: GameStats[];
 }
 
+export interface GameEvent {
+  player_origin_id: string; // the player that did the thing
+  action: string; // the thing the player did (blocked, scored, shot attempt, etc)
+  player_target_id: string; // the player the origin targeted (i.e. player_origin_id blocked player_target_id) (can be empty)
+  count: number; // the amount (i.e. player_origin_id scored 3)
+}
+
 export interface IMatch {
   _id?: mongoose.Types.ObjectId;
   id?: string;
   team_ids: string[];
   start_date_time?: Date;
   scores?: number[];
+  game_events: GameEvent[];
   winner_id?: string;
   round_id: string;
 }
