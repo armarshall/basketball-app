@@ -12,6 +12,7 @@ import {
 } from "@mui/material";
 
 interface LiveGameEventsProps {
+  is_teen_team: boolean;
   game_id: string;
 }
 
@@ -54,12 +55,12 @@ export const LiveGameEventsViewer = (props: LiveGameEventsProps) => {
           </TableHead>
           <TableBody>
             {game_events.map((event, i) => (
-              <TableRow>
-                <TableCell key={i}>{event.player_origin_id}</TableCell>
-                <TableCell key={i}>{event.action}</TableCell>
-                <TableCell key={i}>{event.player_target_id}</TableCell>
-                <TableCell key={i}>{event.count}</TableCell>
-                <TableCell key={i}>
+              <TableRow key={i}>
+                <TableCell>{event.player_origin_id}</TableCell>
+                <TableCell>{event.action}</TableCell>
+                <TableCell>{event.player_target_id}</TableCell>
+                <TableCell>{event.count}</TableCell>
+                <TableCell>
                   <Button
                     onClick={() => {
                       delete_game_event(i);
