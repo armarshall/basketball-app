@@ -12,7 +12,6 @@ const matchSchema = new mongoose.Schema<IMatch>({
 
 matchSchema.set("toJSON", {
   transform: (_document, returnedObject: any) => {
-    // ✅ FIX: Add 'any' type
     returnedObject.id = returnedObject._id.toString();
     delete returnedObject._id;
     delete returnedObject.__v;

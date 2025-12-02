@@ -93,7 +93,7 @@ export interface IMatch {
   scores?: number[];
   game_events: GameEvent[];
   winner_id?: string;
-  round_id: string;
+  round_id?: string;
 }
 
 export interface IRound {

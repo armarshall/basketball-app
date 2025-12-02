@@ -8,6 +8,7 @@ import {
   join_team_as_manager,
   leave_team_as_manager,
   get_team_by_id,
+  get_team_by_name,
   create_team,
   get_team_players,
   get_teams_with_managers,
@@ -15,7 +16,7 @@ import {
   get_team_settings,
   update_team_settings,
 } from "../controllers/team_controller";
-import { verifyManager } from "../MiddleWare/verifyManager";
+import { verifyManager } from "../middleware/verifyManager";
 
 const router = Router();
 
@@ -46,6 +47,7 @@ router.post("/leave-as-manager", leave_team_as_manager);
 router.get("/:teamId/players", get_team_players);
 router.get("/with-managers", get_teams_with_managers);
 router.get("/guardian/:guardianId", get_guardian_team);
+router.get("/by-name/:name", get_team_by_name);
 
 // Manager-only routes (protected by verifyManager middleware)
 router.post("/:teamId/add-player", verifyManager, add_player_to_team);

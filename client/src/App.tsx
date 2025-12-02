@@ -18,6 +18,7 @@ import { StatsEditorPage } from "./pages/StatsEditorTestPage";
 import TeamSelection from "./components/TeamSelection";
 import ManagerProfile from "./components/ManagerProfile";
 import TeamSettings from "./pages/TeamSettings";
+import AdminEvents from "./pages/AdminEvents";
 import TeamDetails from "./pages/TeamDetails"; // ADD THIS IMPORT
 import { LiveGameEventsPage } from "./pages/LiveGameEvents";
 
@@ -28,6 +29,7 @@ function App() {
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/rules" element={<Rules />} />
+        <Route path="/admin/events" element={<AdminEvents />} />
 
         {/* Team Routes - ADD THIS ROUTE */}
         <Route path="/team/:id" element={<TeamDetails />} />

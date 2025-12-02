@@ -85,13 +85,12 @@ export interface IChild {
 
 export interface IMatch {
   id?: string;
-  team1_id: string;
-  team2_id: string;
+  team_ids: string[];
   start_date_time?: Date;
   team1_score?: number[];
   team2_score?: number[];
   winner_id?: string;
-  round_id: string;
+  round_id?: string;
 }
 
 export interface IRound {
