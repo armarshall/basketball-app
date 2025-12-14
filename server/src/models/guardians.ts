@@ -9,11 +9,12 @@ const guardianSchema = new mongoose.Schema<IGuardian>({
   password: { type: String, required: true },
   childId: { type: String, required: false },
   isManager: { type: Boolean, default: false },
-  managedTeamId: { 
-    type: mongoose.Schema.Types.ObjectId, 
-    ref: 'Team',
-    default: null 
-  }
+  managedTeamId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Team",
+    default: null,
+  },
+  isAdmin: { type: Boolean, required: false },
 });
 
 // Transform output when converting to JSON
