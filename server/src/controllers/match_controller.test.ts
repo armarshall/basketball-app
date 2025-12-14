@@ -22,7 +22,7 @@ describe("Match Controller", () => {
 
   describe("get_all_matches", () => {
     it("should return all matches", async () => {
-      const mockMatches = [{ team1_id: "1", team2_id: "2" }];
+      const mockMatches = [{ team_ids: ["1", "2"] }];
       (Match.find as jest.Mock).mockResolvedValue(mockMatches);
 
       await matchController.get_all_matches(req, res);
@@ -46,7 +46,7 @@ describe("Match Controller", () => {
 
   describe("get_matches_by_round_id", () => {
     it("should return matches by round id", async () => {
-      const mockMatches = [{ team1_id: "1", team2_id: "2", round_id: "1" }];
+      const mockMatches = [{ team_ids: ["1", "2"], round_id: "1" }];
       (Match.find as jest.Mock).mockResolvedValue(mockMatches);
       req.params = { id: "1" };
 
@@ -72,7 +72,7 @@ describe("Match Controller", () => {
 
   describe("get_match_by_id", () => {
     it("should return a match by id", async () => {
-      const mockMatch = { team1_id: "1", team2_id: "2" };
+      const mockMatch = { team_ids: ["1", "2"] };
       (Match.findById as jest.Mock).mockResolvedValue(mockMatch);
       req.params = { id: "1" };
 
@@ -108,7 +108,7 @@ describe("Match Controller", () => {
 
   describe("get_teams_by_match_id", () => {
     it("should return teams by match id", async () => {
-      const mockMatch = { _id: "1", team1_id: "1", team2_id: "2" };
+      const mockMatch = { _id: "1", team_ids: ["1", "2"] };
       const mockTeam1 = { _id: "1", name: "Team 1" };
       const mockTeam2 = { _id: "2", name: "Team 2" };
 
@@ -144,7 +144,7 @@ describe("Match Controller", () => {
     });
 
     it("should return 404 if team not found", async () => {
-      const mockMatch = { _id: "1", team1_id: "1", team2_id: "2" };
+      const mockMatch = { _id: "1", team_ids: ["1", "2"] };
       (Match.findById as jest.Mock).mockResolvedValue(mockMatch);
       (Team.findById as jest.Mock).mockResolvedValue(null);
       req.params = { id: "1" };
@@ -171,8 +171,7 @@ describe("Match Controller", () => {
   describe("create_match", () => {
     it("should create a new match", async () => {
       const mockMatch = {
-        team1_id: "1",
-        team2_id: "2",
+        team_ids: ["1", "2"],
         start_date_time: "2024-01-01T00:00:00.000Z",
         round_id: "1",
       };
@@ -190,8 +189,7 @@ describe("Match Controller", () => {
     it("should handle errors", async () => {
       (Match.prototype.save as jest.Mock).mockRejectedValue(new Error());
       req.body = {
-        team1_id: "1",
-        team2_id: "2",
+        team_ids: ["1", "2"],
         start_date_time: "2024-01-01T00:00:00.000Z",
         round_id: "1",
       };
@@ -208,8 +206,7 @@ describe("Match Controller", () => {
   describe("update_match", () => {
     it("should update a match", async () => {
       const mockMatch = {
-        team1_id: "1",
-        team2_id: "2",
+        team_ids: ["1", "2"],
         start_date_time: "2024-01-01T00:00:00.000Z",
       };
       (Match.findByIdAndUpdate as jest.Mock).mockResolvedValue(mockMatch);
@@ -221,11 +218,10 @@ describe("Match Controller", () => {
       expect(Match.findByIdAndUpdate).toHaveBeenCalledWith(
         "1",
         {
-          team1_id: "1",
-          team2_id: "2",
+          team_ids: ["1", "2"],
           start_date_time: "2024-01-01T00:00:00.000Z",
         },
-        { new: true },
+        { new: true }
       );
       expect(res.status).toHaveBeenCalledWith(200);
       expect(res.json).toHaveBeenCalledWith(mockMatch);
@@ -235,8 +231,7 @@ describe("Match Controller", () => {
       (Match.findByIdAndUpdate as jest.Mock).mockResolvedValue(null);
       req.params = { id: "1" };
       req.body = {
-        team1_id: "1",
-        team2_id: "2",
+        team_ids: ["1", "2"],
         start_date_time: "2024-01-01T00:00:00.000Z",
       };
 
@@ -250,8 +245,7 @@ describe("Match Controller", () => {
       (Match.findByIdAndUpdate as jest.Mock).mockRejectedValue(new Error());
       req.params = { id: "1" };
       req.body = {
-        team1_id: "1",
-        team2_id: "2",
+        team_ids: ["1", "2"],
         start_date_time: "2024-01-01T00:00:00.000Z",
       };
 
@@ -266,7 +260,7 @@ describe("Match Controller", () => {
 
   describe("delete_match", () => {
     it("should delete a match", async () => {
-      const mockMatch = { team1_id: "1", team2_id: "2" };
+      const mockMatch = { team_ids: ["1", "2"] };
       (Match.findByIdAndDelete as jest.Mock).mockResolvedValue(mockMatch);
       req.params = { id: "1" };
 
