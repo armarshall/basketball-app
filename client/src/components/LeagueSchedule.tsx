@@ -28,9 +28,9 @@ export default function LeagueSchedule() {
       try {
         const teamIds = new Set<string>();
         for (const match of matches) {
-          if (match.team1_id && match.team2_id) {
-            teamIds.add(match.team1_id);
-            teamIds.add(match.team2_id);
+          if (match.team_ids[0] && match.team_ids[1]) {
+            teamIds.add(match.team_ids[0]);
+            teamIds.add(match.team_ids[1]);
           }
         }
 
@@ -38,7 +38,7 @@ export default function LeagueSchedule() {
         for (const teamId of teamIds) {
           try {
             const res = await axios.get(
-              `http://localhost:3000/api/teams/${teamId}`,
+              `http://localhost:3000/api/teams/${teamId}`
             );
             teamsMap[teamId] = res.data.name;
           } catch (error) {
@@ -142,7 +142,8 @@ export default function LeagueSchedule() {
           selectedDateEvents.map((event: any) => (
             <div key={event.id} style={{ marginBottom: "10px" }}>
               <p>
-                {getTeamName(event.team1_id)} vs {getTeamName(event.team2_id)}
+                {getTeamName(event.team_ids[0])} vs{" "}
+                {getTeamName(event.team_ids[1])}
               </p>
               <p>
                 Time:{" "}
