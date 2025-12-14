@@ -38,31 +38,69 @@ export default function MenuAppBar() {
           <Button href="/" color="secondary" sx={{ textTransform: "none" }}>
             Home
           </Button>
-          <Button href="/rules" color="secondary" sx={{ textTransform: "none" }}>
+          <Button
+            href="/rules"
+            color="secondary"
+            sx={{ textTransform: "none" }}
+          >
             Rules
           </Button>
-          <Button href="/standings" color="secondary" sx={{ textTransform: "none" }}>
+          <Button
+            href="/standings"
+            color="secondary"
+            sx={{ textTransform: "none" }}
+          >
             Standings
           </Button>
-          <Button href="/about" color="secondary" sx={{ textTransform: "none" }}>
+          <Button
+            href="/about"
+            color="secondary"
+            sx={{ textTransform: "none" }}
+          >
             About
           </Button>
-          <Button href="/sponsors" color="secondary" sx={{ textTransform: "none" }}>
+          <Button
+            href="/sponsors"
+            color="secondary"
+            sx={{ textTransform: "none" }}
+          >
             Sponsors
           </Button>
-          <Button href="/upload" color="secondary" sx={{ textTransform: "none" }}>
+          <Button
+            href="/upload"
+            color="secondary"
+            sx={{ textTransform: "none" }}
+          >
             Upload
           </Button>
-          
+
           {/* Teams Link - Show to ALL users (logged in or not) */}
-          <Button href="/teams" color="secondary" sx={{ textTransform: "none" }}>
+          <Button
+            href="/teams"
+            color="secondary"
+            sx={{ textTransform: "none" }}
+          >
             Browse Teams
           </Button>
-          
+
           {/* Manager Links - Only show if user is a manager */}
           {user?.isManager && (
-            <Button href="/manager-profile" color="secondary" sx={{ textTransform: "none" }}>
+            <Button
+              href="/manager-profile"
+              color="secondary"
+              sx={{ textTransform: "none" }}
+            >
               Manager Dashboard
+            </Button>
+          )}
+          {/* Admin Links - Only show if user is an admin */}
+          {user?.isAdmin && (
+            <Button
+              href="/admin/events"
+              color="secondary"
+              sx={{ textTransform: "none" }}
+            >
+              Admin Events
             </Button>
           )}
         </div>
@@ -72,14 +110,11 @@ export default function MenuAppBar() {
           {user ? (
             // Show when user is logged in
             <>
-              <Button 
-                color="secondary" 
-                sx={{ textTransform: "none", mr: 1 }}
-              >
+              <Button color="secondary" sx={{ textTransform: "none", mr: 1 }}>
                 Hello, {user.name}
               </Button>
-              <Button 
-                variant="outlined" 
+              <Button
+                variant="outlined"
                 color="secondary"
                 onClick={handleSignOut}
               >
@@ -89,7 +124,12 @@ export default function MenuAppBar() {
           ) : (
             // Show when user is logged out
             <>
-              <Button href="/signup" variant="outlined" color="secondary" sx={{ mr: 1 }}>
+              <Button
+                href="/signup"
+                variant="outlined"
+                color="secondary"
+                sx={{ mr: 1 }}
+              >
                 Sign Up
               </Button>
               <Button href="/login" variant="outlined" color="secondary">
