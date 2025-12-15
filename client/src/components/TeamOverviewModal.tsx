@@ -69,10 +69,16 @@ export default function TeamOverviewModal({
       const teamData = teamRes.data;
       setTeam(teamData);
 
-      // Fetch manager data
+      // Fetch manager data (managers are guardians)
       if (teamData.managerId) {
-        const managerRes = await axios.get(`http://localhost:3000/api/users/${teamData.managerId}`);
-        setManager(managerRes.data);
+        try {
+          const managerRes = await axios.get(`http://localhost:3000/api/guardians/id/${teamData.managerId}`);
+          setManager(managerRes.data);
+        } catch (managerErr) {
+          console.error("Error fetching manager data:", managerErr);
+          // Continue even if manager fetch fails
+          setManager(null);
+        }
       }
 
       // Fetch players data

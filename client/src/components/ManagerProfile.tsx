@@ -57,12 +57,46 @@ export default function ManagerProfile() {
       const userData = get_user_data();
       if (userData) {
         const user = JSON.parse(userData);
-        setCurrentUser(user);
         
-        if (user.managedTeamId) {
-          await fetchTeamData(user.managedTeamId, user._id || user.id);
+        // If user is a guardian, fetch fresh data to check if they're a manager
+        if (user.type === 'guardian') {
+          try {
+            const guardianRes = await axios.get(`http://localhost:3000/api/guardians/email/${user.email}`);
+            const freshGuardianData = guardianRes.data;
+            
+            // Update the user object with fresh data
+            const updatedUser = {
+              ...user,
+              isManager: freshGuardianData.isManager || false,
+              managedTeamId: freshGuardianData.managedTeamId || null
+            };
+            
+            // Update session storage with fresh data
+            sessionStorage.setItem("user", JSON.stringify(updatedUser));
+            setCurrentUser(updatedUser);
+            
+            if (updatedUser.managedTeamId) {
+              await fetchTeamData(updatedUser.managedTeamId, updatedUser._id || updatedUser.id);
+            } else {
+              setLoading(false);
+            }
+          } catch (err) {
+            console.error("Error fetching fresh guardian data:", err);
+            // Fall back to cached user data
+            setCurrentUser(user);
+            if (user.managedTeamId) {
+              await fetchTeamData(user.managedTeamId, user._id || user.id);
+            } else {
+              setLoading(false);
+            }
+          }
         } else {
-          setLoading(false);
+          setCurrentUser(user);
+          if (user.managedTeamId) {
+            await fetchTeamData(user.managedTeamId, user._id || user.id);
+          } else {
+            setLoading(false);
+          }
         }
       } else {
         setLoading(false);
@@ -149,6 +183,42 @@ export default function ManagerProfile() {
     }
   };
 
+  const handleLeaveTeam = async () => {
+    if (!team || !currentUser) return;
+
+    const confirmLeave = confirm(
+      `Are you sure you want to leave as manager of "${team.name}"?\n\n` +
+      "This will remove you as the team manager. The team will remain but will need a new manager."
+    );
+
+    if (!confirmLeave) return;
+
+    try {
+      const guardianId = currentUser._id || currentUser.id;
+      
+      await axios.post(`http://localhost:3000/api/teams/leave-as-manager`, {
+        teamId: team._id,
+        guardianId
+      });
+
+      // Update session storage
+      const updatedUser = {
+        ...currentUser,
+        isManager: false,
+        managedTeamId: null
+      };
+      sessionStorage.setItem("user", JSON.stringify(updatedUser));
+
+      alert("You have successfully left the team as manager.");
+      
+      // Navigate to teams page
+      navigate("/teams");
+    } catch (err: any) {
+      console.error("Error leaving team:", err);
+      alert(err?.response?.data?.error || "Error leaving team");
+    }
+  };
+
   if (loading) {
     return (
       <div style={{ padding: 20 }}>
@@ -166,12 +236,42 @@ export default function ManagerProfile() {
     );
   }
 
-  if (!currentUser.isManager || !team) {
+  if (!currentUser.managedTeamId || !team) {
     return (
-      <div style={{ padding: 20 }}>
+      <div style={{ padding: 20, maxWidth: 600, margin: "0 auto", textAlign: "center" }}>
         <h2>Manager Profile</h2>
-        <p>You are not currently managing any team.</p>
-        <a href="/teams" style={{ color: "#007bff" }}>Browse Available Teams</a>
+        <p style={{ marginBottom: 20 }}>You are not currently managing any team.</p>
+        <p style={{ color: "#666", marginBottom: 20 }}>
+          Join a team as a manager or create your own team to access the manager dashboard.
+        </p>
+        <div style={{ display: "flex", gap: 10, justifyContent: "center" }}>
+          <button
+            onClick={() => navigate("/teams")}
+            style={{
+              padding: "10px 20px",
+              backgroundColor: "#007bff",
+              color: "white",
+              border: "none",
+              borderRadius: 6,
+              cursor: "pointer"
+            }}
+          >
+            Browse Available Teams
+          </button>
+          <button
+            onClick={() => navigate("/teamcreate")}
+            style={{
+              padding: "10px 20px",
+              backgroundColor: "#28a745",
+              color: "white",
+              border: "none",
+              borderRadius: 6,
+              cursor: "pointer"
+            }}
+          >
+            Create a Team
+          </button>
+        </div>
       </div>
     );
   }
@@ -318,6 +418,20 @@ export default function ManagerProfile() {
                 }}
               >
                 View Public Team Page
+              </button>
+              <button
+                onClick={handleLeaveTeam}
+                style={{
+                  padding: "10px 16px",
+                  backgroundColor: "#dc3545",
+                  color: "white",
+                  border: "none",
+                  borderRadius: 4,
+                  cursor: "pointer",
+                  textAlign: "left"
+                }}
+              >
+                Leave Team as Manager
               </button>
             </div>
           </div>

@@ -37,6 +37,8 @@ export const check_guardian_hash = async (req: Request, res: Response) => {
       name: guardian.name,
       childId: guardian.childId,
       isAdmin: guardian.isAdmin || false,
+      isManager: guardian.isManager || false,
+      managedTeamId: guardian.managedTeamId || null,
     };
     return res.json({ success: true, user: user });
   } else {
