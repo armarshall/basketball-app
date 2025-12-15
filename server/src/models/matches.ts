@@ -6,7 +6,7 @@ const matchSchema = new mongoose.Schema<IMatch>({
   start_date_time: { type: Date, required: false },
   scores: { type: [Number], required: false },
   winner_id: { type: String, required: false },
-  round_id: { type: String, required: true },
+  round_id: { type: String, required: false },
   game_events: Array<GameEvent>,
 });
 

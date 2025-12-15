@@ -66,16 +66,16 @@ export const get_teams_by_match_id = async (req: Request, res: Response) => {
 export const create_match = async (req: Request, res: Response) => {
   try {
     const { team_ids, start_date_time, scores, winner_id, round_id } = req.body;
-    
+
     // ✅ FIX: Use properties that match IMatch interface
-    const match = new Match({ 
+    const match = new Match({
       team_ids: team_ids || [],
       start_date_time: start_date_time ? new Date(start_date_time) : undefined,
       scores: scores || [],
       winner_id: winner_id || "",
-      round_id: round_id
+      round_id: round_id,
     });
-    
+
     await match.save();
     return res.status(201).json(match);
   } catch (error) {
@@ -87,20 +87,22 @@ export const update_match = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
     const { team_ids, start_date_time, scores, winner_id, round_id } = req.body;
-    
+
     // ✅ FIX: Use properties that match IMatch interface
     const match = await Match.findByIdAndUpdate(
       id,
-      { 
-        team_ids, 
-        start_date_time: start_date_time ? new Date(start_date_time) : undefined, 
-        scores, 
-        winner_id, 
-        round_id 
+      {
+        team_ids,
+        start_date_time: start_date_time
+          ? new Date(start_date_time)
+          : undefined,
+        scores,
+        winner_id,
+        round_id,
       },
-      { new: true },
+      { new: true }
     );
-    
+
     if (!match) {
       return res.status(404).json({ message: "Match not found" });
     }
