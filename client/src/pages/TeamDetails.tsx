@@ -2,6 +2,8 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
+import { get_user_data } from "../services/session_service";
+import TeamChat from "../components/TeamChat";
 
 interface Team {
   _id: string;
@@ -27,12 +29,71 @@ export default function TeamDetails() {
   const [team, setTeam] = useState<Team | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [currentUser, setCurrentUser] = useState<any>(null);
+  const [isTeamMember, setIsTeamMember] = useState(false);
 
   useEffect(() => {
-    if (id) {
-      fetchTeamData(id);
-    }
+    const initialize = async () => {
+      const userData = get_user_data();
+      if (userData) {
+        const user = JSON.parse(userData);
+        setCurrentUser(user);
+      }
+      
+      if (id) {
+        await fetchTeamData(id);
+      }
+    };
+    initialize();
   }, [id]);
+
+  // Re-check team membership when currentUser or team changes
+  useEffect(() => {
+    if (team && currentUser) {
+      checkTeamMembership(team, currentUser);
+    }
+  }, [team, currentUser]);
+
+  const checkTeamMembership = (teamData: Team, user: any) => {
+    if (!user) {
+      setIsTeamMember(false);
+      return false;
+    }
+
+    const userId = user._id || user.id;
+    const userType = user.type;
+
+    // Extract manager ID - it might be an object or a string
+    const managerIdValue =
+      typeof teamData.managerId === "object" && teamData.managerId !== null
+        ? (teamData.managerId as any)._id
+        : teamData.managerId;
+
+    // Check if user is the manager
+    if (
+      userType === "guardian" &&
+      managerIdValue?.toString() === userId?.toString()
+    ) {
+      setIsTeamMember(true);
+      return true;
+    }
+
+    // Check if user is a player on the team
+    if (userType === "teen" || userType === "teenager") {
+      const isPlayer = teamData.players?.some((p: any) => {
+        const playerId = typeof p === "object" ? p._id : p;
+        return playerId?.toString() === userId?.toString();
+      });
+
+      if (isPlayer) {
+        setIsTeamMember(true);
+        return true;
+      }
+    }
+
+    setIsTeamMember(false);
+    return false;
+  };
 
   const fetchTeamData = async (teamId: string) => {
     try {
@@ -44,6 +105,10 @@ export default function TeamDetails() {
       
       if (teamRes.data) {
         setTeam(teamRes.data);
+        // Check team membership after team data is loaded
+        if (currentUser) {
+          checkTeamMembership(teamRes.data, currentUser);
+        }
       } else {
         setError("Team not found");
       }
@@ -346,6 +411,17 @@ export default function TeamDetails() {
           </div>
         </div>
       </div>
+
+      {/* Team Chat - Only visible to team members */}
+      {isTeamMember && currentUser && team && (
+        <div style={{ marginTop: 30 }}>
+          <TeamChat
+            teamId={team._id}
+            userId={currentUser._id || currentUser.id}
+            userType={currentUser.type}
+          />
+        </div>
+      )}
     </div>
   );
 }
