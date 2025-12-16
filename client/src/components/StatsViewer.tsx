@@ -35,7 +35,7 @@ export const StatsViewer = (props: StatsViewerProps) => {
   useEffect(() => {
     if (props.is_teen) {
       axios
-        .get(`http://localhost:3000/api/teenager/stats/${props.player_id}`)
+        .get(`http://localhost:3000/api/teenagers/stats/${props.player_id}`)
         .then((r) => {
           set_player_stats(r.data);
         });
@@ -68,7 +68,7 @@ export const StatsViewer = (props: StatsViewerProps) => {
   return (
     <>
       {player_stats.length === 0 ? (
-        <p>Loading...</p>
+        <p>No stats yet</p>
       ) : (
         <TableContainer>
           <Table>

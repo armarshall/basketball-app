@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import EventsTable from "../components/EventsTable";
+import { Button } from "@mui/material";
 
 const AdminEvents: React.FC = () => {
   const [isAdmin, setIsAdmin] = useState(false);
@@ -36,6 +37,17 @@ const AdminEvents: React.FC = () => {
     <div>
       <h1 style={{ margin: "20px" }}>Events</h1>
       <EventsTable />
+      <hr />
+      <h1 style={{ margin: "20px" }}>Editors</h1>
+      <Button href="/stats-viewer" variant="contained">
+        Stats Viewer
+      </Button>
+      <Button href="/stats-editor" variant="contained">
+        Stats Editor
+      </Button>
+      <Button href="/live-game-events" variant="contained">
+        Live Events Editor
+      </Button>
     </div>
   );
 };
