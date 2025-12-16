@@ -5,6 +5,7 @@ import axios from 'axios';
 interface Image {
   _id: string;
   filename: string;
+  originalFilename?: string;
   url: string;
   uploadDate: string;
 }
@@ -55,32 +56,81 @@ function Sponsors() {
     return url;
   };
 
-  const getSponsorName = (filename: string): string => {
+  const getSponsorName = (filename: string, originalFilename?: string): string => {
+    // Use original filename if available, otherwise use the generated filename
+    const nameToProcess = originalFilename || filename;
+    // Known sponsor mappings for common brands
     const nameMap: { [key: string]: string } = {
       'nike': 'Nike',
       'gatorade': 'Gatorade',
       'wilson': 'Wilson',
       'baltimore': 'Baltimore City',
+      'adidas': 'Adidas',
+      'underarmour': 'Under Armour',
+      'under-armour': 'Under Armour',
+      'spalding': 'Spalding',
+      'puma': 'Puma',
+      'reebok': 'Reebok',
+      'jordan': 'Air Jordan',
+      'champion': 'Champion',
+      'new-balance': 'New Balance',
+      'newbalance': 'New Balance',
     };
 
-    // Check for known sponsors first
-    const lowerFilename = filename.toLowerCase();
+    // Check for known sponsors first (case-insensitive)
+    const lowerFilename = nameToProcess.toLowerCase();
     for (const [key, value] of Object.entries(nameMap)) {
       if (lowerFilename.includes(key)) {
         return value;
       }
     }
 
-    // Fallback: clean up the filename
-    const cleanName = filename
-      .replace(/\d+-/g, '')
+    // Fallback: clean up the filename automatically
+    let cleanName = nameToProcess
+      // Remove file extension
       .replace(/\.\w+$/, '')
-      .replace(/-/g, ' ')
-      .replace(/\b\w/g, l => l.toUpperCase())
-      .replace(/Logo/gi, '')
+      // Remove "sponsor-" prefix
+      .replace(/^sponsor-/i, '')
+      // Remove "team-" prefix if present
+      .replace(/^team-/i, '')
+      // Remove timestamps (e.g., 1234567890-123456789)
+      .replace(/\d{10,}-\d+/g, '')
+      // Remove standalone numbers with dashes
+      .replace(/\d+-/g, '')
+      .replace(/-\d+/g, '')
+      // Replace underscores and dashes with spaces
+      .replace(/[-_]/g, ' ')
+      // Remove common words
+      .replace(/\b(logo|image|sponsor|png|jpg|jpeg|gif)\b/gi, '')
+      // Remove extra whitespace
+      .replace(/\s+/g, ' ')
       .trim();
     
-    return cleanName || 'Sponsor';
+    // Capitalize each word properly
+    cleanName = cleanName
+      .split(' ')
+      .map(word => {
+        // Skip empty strings
+        if (!word) return '';
+        
+        // Handle all caps acronyms (e.g., NBA, UFC)
+        if (word.length <= 4 && word.toUpperCase() === word) {
+          return word.toUpperCase();
+        }
+        
+        // Capitalize first letter of each word
+        return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
+      })
+      .filter(word => word.length > 0)
+      .join(' ');
+    
+    // If we couldn't extract a clean name, show the filename without extension
+    if (!cleanName) {
+      const filenameWithoutExt = nameToProcess.replace(/\.\w+$/, '');
+      return filenameWithoutExt || 'Unnamed Sponsor';
+    }
+    
+    return cleanName;
   };
 
   if (loading) {
@@ -148,7 +198,7 @@ function Sponsors() {
               {/* ✅ FIX: Use getImageUrl to handle relative paths */}
               <img 
                 src={getImageUrl(image.url)} 
-                alt={`${getSponsorName(image.filename)} logo`}
+                alt={`${getSponsorName(image.filename, image.originalFilename)} logo`}
                 style={{
                   width: '200px',
                   height: '200px',
@@ -173,7 +223,7 @@ function Sponsors() {
               />
               
               <h3 style={{ margin: '15px 0 5px 0' }}>
-                {getSponsorName(image.filename)}
+                {getSponsorName(image.filename, image.originalFilename)}
               </h3>
               
               <p style={{ color: '#666', fontStyle: 'italic', margin: 0 }}>
