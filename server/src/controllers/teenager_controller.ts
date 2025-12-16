@@ -151,6 +151,8 @@ export const update_teenager_stats = async (req: Request, res: Response) => {
     game_id: String | undefined;
   }
 
+  console.log(req.body);
+
   const { game_stats, game_id }: expected_body = req.body ?? {};
 
   if (!req.params.id) {
@@ -174,7 +176,9 @@ export const update_teenager_stats = async (req: Request, res: Response) => {
 
     // Fix: Check if game_stats exists and initialize if needed
     if (!teenager.game_stats) {
-      return res.status(400).json({ error: "no game stats found for this teenager" });
+      return res
+        .status(400)
+        .json({ error: "no game stats found for this teenager" });
     }
 
     const index = teenager.game_stats.findIndex((e) => e.game_id === game_id);
@@ -187,6 +191,8 @@ export const update_teenager_stats = async (req: Request, res: Response) => {
     teenager.markModified("game_stats");
 
     const savedTeenager = await teenager.save();
+    console.log("saved new teen stats: ");
+    console.log(game_stats);
     return res.json(savedTeenager);
   } catch (err) {
     console.error(err);

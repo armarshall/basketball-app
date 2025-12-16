@@ -53,8 +53,8 @@ function App() {
         {/* Remove duplicate route */}
         {/* <Route path="/team-settings/:id" element={<TeamSettings />} /> */}
 
-        <Route path="/stats-test" element={<StatsViewerPage />} />
-        <Route path="/stats-update" element={<StatsEditorPage />} />
+        <Route path="/stats-viewer" element={<StatsViewerPage />} />
+        <Route path="/stats-editor" element={<StatsEditorPage />} />
         <Route path="/live-game-events" element={<LiveGameEventsPage />} />
 
         <Route path="*" element={<div>Page not found</div>} />

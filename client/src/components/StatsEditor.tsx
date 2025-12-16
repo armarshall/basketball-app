@@ -50,7 +50,7 @@ export const StatsUpdater = (p: StatsUpdaterProps) => {
       console.log(player_stats);
       axios
         .patch(`http://localhost:3000/api/teenagers/stats/${p.player_id}`, {
-          game_stats: player_stats,
+          game_stats: Object.fromEntries(player_stats),
           game_id: p.game_id,
         })
         .then((r) => {
@@ -108,6 +108,19 @@ export const StatsUpdater = (p: StatsUpdaterProps) => {
         </TableContainer>
         <button type="submit">Submit</button>
       </form>
+      <button
+        onClick={() => {
+          axios
+            .post(`http://localhost:3000/api/teenagers/stats/${p.player_id}`, {
+              game_stats: { ...player_stats, game_id: "0" },
+            })
+            .then((r) => {
+              console.log(r);
+            });
+        }}
+      >
+        Create Game
+      </button>
     </>
   );
 };
