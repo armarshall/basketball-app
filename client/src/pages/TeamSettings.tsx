@@ -120,7 +120,7 @@ export default function TeamSettings() {
       const guardianId = currentUser._id || currentUser.id;
       
       await axios.put(`http://localhost:3000/api/teams/${team._id}/settings`, {
-        teamSettings: formData,
+        settings: formData,
         guardianId
       });
 

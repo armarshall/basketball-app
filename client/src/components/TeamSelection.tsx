@@ -8,7 +8,7 @@ import TeamOverviewModal from "../components/TeamOverviewModal";
 interface Team {
   _id: string;
   name: string;
-  managerId: string;
+  managerId: string | null;
   managerName: string;
   playerCount: number;
   maxPlayers: number;
@@ -83,6 +83,42 @@ export default function TeamSelection() {
     }
   };
 
+  const handleJoinAsManager = async (teamId: string) => {
+    if (!currentUser) {
+      alert("Please log in to join a team");
+      return;
+    }
+
+    setJoiningTeam(teamId);
+    try {
+      const res = await axios.post(`http://localhost:3000/api/teams/join-as-manager`, {
+        teamId: teamId,
+        guardianId: currentUser._id || currentUser.id
+      });
+
+      // Fetch fresh guardian data to update session
+      const guardianRes = await axios.get(`http://localhost:3000/api/guardians/email/${currentUser.email}`);
+      const updatedGuardian = guardianRes.data;
+      
+      // Update session storage with fresh data
+      const updatedUser = {
+        ...currentUser,
+        isManager: updatedGuardian.isManager || false,
+        managedTeamId: updatedGuardian.managedTeamId || null
+      };
+      sessionStorage.setItem("user", JSON.stringify(updatedUser));
+      setCurrentUser(updatedUser);
+
+      alert("Successfully joined the team as manager!");
+      await fetchTeams(); // Refresh the team list
+    } catch (err: any) {
+      console.error("Error joining team as manager:", err);
+      alert(err?.response?.data?.error || "Error joining team as manager");
+    } finally {
+      setJoiningTeam(null);
+    }
+  };
+
   // FIXED: Navigation handler
   const handleCreateTeam = () => {
     navigate("/teamcreate");
@@ -90,8 +126,16 @@ export default function TeamSelection() {
 
   const canJoinTeam = (team: Team) => {
     if (!currentUser) return false;
-    if (currentUser.role !== 'teenager') return false;
+    if (currentUser.type !== 'teen') return false;
     if (team.playerCount >= team.maxPlayers) return false;
+    return true;
+  };
+
+  const canJoinAsManager = (team: Team) => {
+    if (!currentUser) return false;
+    if (currentUser.type !== 'guardian') return false;
+    if (team.managerId) return false; // Team already has a manager
+    if (currentUser.isManager) return false; // Guardian already managing another team
     return true;
   };
 
@@ -115,6 +159,19 @@ export default function TeamSelection() {
             Please log in to join a team
           </p>
         )}
+        {currentUser?.type === 'guardian' && currentUser.isManager && (
+          <div style={{
+            padding: "12px 20px",
+            backgroundColor: "#d1ecf1",
+            color: "#0c5460",
+            border: "1px solid #bee5eb",
+            borderRadius: "6px",
+            marginTop: "16px",
+            display: "inline-block"
+          }}>
+            ℹ️ You are currently managing a team. You can only manage one team at a time.
+          </div>
+        )}
       </div>
 
       {error && (
@@ -134,7 +191,7 @@ export default function TeamSelection() {
         <div style={{ textAlign: "center", padding: 40, color: "#666" }}>
           <h3>No teams available</h3>
           <p>Check back later or create your own team!</p>
-          {currentUser?.role === 'guardian' && (
+          {currentUser?.type === 'guardian' && !currentUser.isManager && (
             <button
               onClick={handleCreateTeam} // FIXED: Use navigation handler
               style={{
@@ -150,6 +207,11 @@ export default function TeamSelection() {
             >
               Create a Team
             </button>
+          )}
+          {currentUser?.type === 'guardian' && currentUser.isManager && (
+            <p style={{ marginTop: 20, color: "#856404" }}>
+              You are already managing a team.
+            </p>
           )}
         </div>
       ) : (
@@ -277,7 +339,7 @@ export default function TeamSelection() {
                 </div>
               </div>
 
-              {/* Join Button */}
+              {/* Join Button for Teenagers */}
               {canJoinTeam(team) && (
                 <button
                   onClick={(e) => {
@@ -299,13 +361,13 @@ export default function TeamSelection() {
                     fontWeight: "600",
                     transition: "all 0.2s ease"
                   }}
-                  onMouseEnter={(e) => {
-                    if (!team.playerCount >= team.maxPlayers && joiningTeam !== team._id) {
+                   onMouseEnter={(e) => {
+                    if (team.playerCount < team.maxPlayers && joiningTeam !== team._id) {
                       e.currentTarget.style.backgroundColor = "#059669";
                     }
                   }}
                   onMouseLeave={(e) => {
-                    if (!team.playerCount >= team.maxPlayers && joiningTeam !== team._id) {
+                    if (team.playerCount < team.maxPlayers && joiningTeam !== team._id) {
                       e.currentTarget.style.backgroundColor = "#10b981";
                     }
                   }}
@@ -315,7 +377,43 @@ export default function TeamSelection() {
                 </button>
               )}
 
-              {currentUser?.role !== 'teenager' && currentUser && (
+              {/* Join as Manager Button for Guardians */}
+              {canJoinAsManager(team) && (
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation(); // Prevent triggering team click
+                    handleJoinAsManager(team._id);
+                  }}
+                  disabled={joiningTeam === team._id}
+                  style={{
+                    width: "100%",
+                    padding: "12px 16px",
+                    backgroundColor: joiningTeam === team._id ? "#6b7280" : "#3b82f6",
+                    color: "white",
+                    border: "none",
+                    borderRadius: 6,
+                    cursor: joiningTeam === team._id ? "not-allowed" : "pointer",
+                    fontSize: "14px",
+                    fontWeight: "600",
+                    transition: "all 0.2s ease"
+                  }}
+                  onMouseEnter={(e) => {
+                    if (joiningTeam !== team._id) {
+                      e.currentTarget.style.backgroundColor = "#2563eb";
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    if (joiningTeam !== team._id) {
+                      e.currentTarget.style.backgroundColor = "#3b82f6";
+                    }
+                  }}
+                >
+                  {joiningTeam === team._id ? "Joining..." : "Join as Manager"}
+                </button>
+              )}
+
+              {/* Status messages for guardians who can't join */}
+              {currentUser?.type === 'guardian' && !canJoinAsManager(team) && (
                 <div style={{ 
                   padding: "8px 12px", 
                   backgroundColor: "#f3f4f6", 
@@ -324,7 +422,23 @@ export default function TeamSelection() {
                   fontSize: "12px",
                   color: "#6b7280"
                 }}>
-                  {currentUser.role === 'guardian' ? 'Managers cannot join teams' : 'Please log in as a teenager to join'}
+                  {team.managerId ? 'Team already has a manager' : 
+                   currentUser.isManager ? 'You are already managing another team' : 
+                   'Cannot join as manager'}
+                </div>
+              )}
+
+              {/* Status message for non-logged-in or other user types */}
+              {!currentUser?.type && currentUser && (
+                <div style={{ 
+                  padding: "8px 12px", 
+                  backgroundColor: "#f3f4f6", 
+                  borderRadius: 4,
+                  textAlign: "center",
+                  fontSize: "12px",
+                  color: "#6b7280"
+                }}>
+                  Please log in as a teenager or guardian to join
                 </div>
               )}
 
@@ -353,7 +467,7 @@ export default function TeamSelection() {
       />
 
       {/* Create Team CTA for Guardians */}
-      {currentUser?.role === 'guardian' && (
+      {currentUser?.type === 'guardian' && !currentUser.isManager && (
         <div style={{ 
           textAlign: "center", 
           marginTop: 40, 
@@ -387,6 +501,45 @@ export default function TeamSelection() {
             }}
           >
             Create Your Team
+          </button>
+        </div>
+      )}
+      
+      {/* Message for guardians already managing a team */}
+      {currentUser?.type === 'guardian' && currentUser.isManager && (
+        <div style={{ 
+          textAlign: "center", 
+          marginTop: 40, 
+          padding: 30,
+          backgroundColor: "#fff3cd",
+          borderRadius: 12,
+          border: "2px solid #ffc107"
+        }}>
+          <h3 style={{ margin: "0 0 12px 0", color: "#856404" }}>Already Managing a Team</h3>
+          <p style={{ color: "#856404", marginBottom: 20 }}>
+            You are currently managing a team. You can only manage one team at a time.
+          </p>
+          <button
+            onClick={() => navigate("/manager-profile")}
+            style={{
+              padding: "12px 24px",
+              backgroundColor: "#ffc107",
+              color: "#000",
+              border: "none",
+              borderRadius: 6,
+              cursor: "pointer",
+              fontSize: 16,
+              fontWeight: "600",
+              transition: "background-color 0.2s"
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.backgroundColor = "#e0a800";
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.backgroundColor = "#ffc107";
+            }}
+          >
+            Go to Manager Dashboard
           </button>
         </div>
       )}

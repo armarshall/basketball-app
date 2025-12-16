@@ -13,6 +13,7 @@ import rulesRouter from "./routes/rules_router";
 import roundRouter from "./routes/round_router";
 import matchRouter from "./routes/match_router";
 import eventRouter from "./routes/live_game_info";
+import chatRouter from "./routes/chat_router";
 
 const app = express();
 app.use(cors());
@@ -28,6 +29,7 @@ app.get("/ping", (_req, res) => {
 
 // Register API routes
 app.use("/api/teams", teamRouter);
+app.use("/api/teams", chatRouter);
 app.use("/api/guardians", guardianRouter);
 app.use("/api/teenagers", teenagerRouter);
 app.use("/api/children", childRouter);

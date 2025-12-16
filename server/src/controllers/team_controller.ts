@@ -10,8 +10,25 @@ export const get_all_teams = async (
   res: Response,
 ): Promise<void> => {
   try {
-    const teams = await Team.find({});
-    res.json(teams);
+    const teams = await Team.find({}).populate("managerId", "name email");
+    
+    // Transform teams to include frontend-friendly data
+    const transformedTeams = teams.map((team: any) => {
+      const teamObj = team.toObject();
+      return {
+        _id: teamObj._id,
+        name: teamObj.name,
+        managerId: teamObj.managerId?._id || null,
+        managerName: teamObj.managerId?.name || "No Manager",
+        playerCount: Array.isArray(teamObj.players) ? teamObj.players.length : 0,
+        maxPlayers: teamObj.teamSettings?.maxPlayers || 12,
+        primaryColor: teamObj.teamSettings?.primaryColor,
+        jerseyColor: teamObj.teamSettings?.jerseyColor,
+        teamImage: teamObj.teamSettings?.teamImage
+      };
+    });
+    
+    res.json(transformedTeams);
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: "Internal server error" });
