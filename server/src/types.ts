@@ -113,6 +113,7 @@ export interface ITournament {
 
 export interface IImage extends mongoose.Document {
   filename: string;
+  originalFilename?: string;
   url: string;
   uploadDate: Date;
 }

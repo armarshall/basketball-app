@@ -10,6 +10,7 @@ import { IImage } from "../types";
 
 const imageSchema: Schema = new Schema({
   filename: { type: String, required: true },
+  originalFilename: { type: String },
   url: { type: String, required: true },
   uploadDate: { type: Date, default: Date.now },
 });
